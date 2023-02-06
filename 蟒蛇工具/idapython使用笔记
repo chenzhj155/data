@@ -21,3 +21,59 @@ def set_hexrays_comment(comment, address):
 
         if not commentSet:
             print("[ERROR] Please set \"%s\" to line %s manually" % (comment, hex(int(address))))
+            
+            
+            
+获取函数引用
+def get_xref_list(fn_addr):
+
+    return [addr.frm for addr in idautils.XrefsTo(fn_addr)]
+
+获取前一条指令地址
+idc.prev_head
+获取后一条指令地址
+idc.next_head
+
+修改变量名
+idc.set_name(dwData,funcsss,ida_name.SN_FORCE)
+SN_FORCE 如果存在名字，则使用其他名字
+
+获取操作数类型
+get_operand_type
+获取操作数的值
+idc.get_operand_value
+获取dword数据
+ida_bytes.get_dword
+获取word 数据
+idc.get_wide_byte
+获取byte数
+idc.get_bytes(ea,count)
+修改字节
+ida_bytes.patch_byte
+查找二进制
+    while ea != ida_idaapi.BADADDR:
+        ea = idc.find_binary(ea, SEARCH_NEXT | SEARCH_DOWN | SEARCH_CASE, pattern)
+        if(ea==ida_idaapi.BADADDR):
+            break
+获取反汇编
+idc.generate_disasm_line
+
+获取操作码助记符
+print_insn_mnem
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
