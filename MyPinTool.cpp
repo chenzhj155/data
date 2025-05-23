@@ -1,0 +1,616 @@
+/*
+ * Copyright (C) 2004-2021 Intel Corporation.
+ * SPDX-License-Identifier: MIT
+ */
+
+ /*
+  *  This file contains an ISA-portable PIN tool for tracing system calls
+  */
+
+#include <stdio.h>
+#include <unordered_map>
+#if !defined(TARGET_WINDOWS)
+#include <sys/syscall.h>
+#endif
+
+#include "pin.H"
+
+FILE* trace;
+
+#include <map>
+#include <string>
+
+
+std::map<int, std::string> syscallTable;
+void Init_syscall_table() {
+    
+       
+syscallTable[0x0] = "ZwAccessCheck",
+syscallTable[0x1] = "NtWorkerFactoryWorkerReady",
+syscallTable[0x2] = "NtAcceptConnectPort",
+syscallTable[0x3] = "ZwMapUserPhysicalPagesScatter",
+syscallTable[0x4] = "NtWaitForSingleObject",
+syscallTable[0x5] = "ZwCallbackReturn",
+syscallTable[0x6] = "NtReadFile",
+syscallTable[0x7] = "NtDeviceIoControlFile",
+syscallTable[0x8] = "NtWriteFile",
+syscallTable[0x9] = "ZwRemoveIoCompletion",
+syscallTable[0x0A] = "ZwReleaseSemaphore",
+syscallTable[0x0B] = "ZwReplyWaitReceivePort",
+syscallTable[0x0C] = "NtReplyPort",
+syscallTable[0x0D] = "NtSetInformationThread",
+syscallTable[0x0E] = "ZwSetEvent",
+syscallTable[0x0F] = "NtClose",
+syscallTable[0x10] = "ZwQueryObject",
+syscallTable[0x11] = "NtQueryInformationFile",
+syscallTable[0x12] = "NtOpenKey",
+syscallTable[0x13] = "ZwEnumerateValueKey",
+syscallTable[0x14] = "ZwFindAtom",
+syscallTable[0x15] = "NtQueryDefaultLocale",
+syscallTable[0x16] = "ZwQueryKey",
+syscallTable[0x17] = "NtQueryValueKey",
+syscallTable[0x18] = "ZwAllocateVirtualMemory",
+syscallTable[0x19] = "NtQueryInformationProcess",
+syscallTable[0x1A] = "ZwWaitForMultipleObjects32",
+syscallTable[0x1B] = "ZwWriteFileGather",
+syscallTable[0x1C] = "NtSetInformationProcess",
+syscallTable[0x1D] = "ZwCreateKey",
+syscallTable[0x1E] = "ZwFreeVirtualMemory",
+syscallTable[0x1F] = "ZwImpersonateClientOfPort",
+syscallTable[0x20] = "ZwReleaseMutant",
+syscallTable[0x21] = "NtQueryInformationToken",
+syscallTable[0x22] = "ZwRequestWaitReplyPort",
+syscallTable[0x23] = "ZwQueryVirtualMemory",
+syscallTable[0x24] = "NtOpenThreadToken",
+syscallTable[0x25] = "ZwQueryInformationThread",
+syscallTable[0x26] = "NtOpenProcess",
+syscallTable[0x27] = "ZwSetInformationFile",
+syscallTable[0x28] = "ZwMapViewOfSection",
+syscallTable[0x29] = "ZwAccessCheckAndAuditAlarm",
+syscallTable[0x2A] = "NtUnmapViewOfSection",
+syscallTable[0x2B] = "ZwReplyWaitReceivePortEx",
+syscallTable[0x2C] = "ZwTerminateProcess",
+syscallTable[0x2D] = "ZwSetEventBoostPriority",
+syscallTable[0x2E] = "ZwReadFileScatter",
+syscallTable[0x2F] = "NtOpenThreadTokenEx",
+syscallTable[0x30] = "NtOpenProcessTokenEx",
+syscallTable[0x31] = "NtQueryPerformanceCounter",
+syscallTable[0x32] = "NtEnumerateKey",
+syscallTable[0x33] = "NtOpenFile",
+syscallTable[0x34] = "ZwDelayExecution",
+syscallTable[0x35] = "NtQueryDirectoryFile",
+syscallTable[0x36] = "NtQuerySystemInformation",
+syscallTable[0x37] = "NtOpenSection",
+syscallTable[0x38] = "ZwQueryTimer",
+syscallTable[0x39] = "ZwFsControlFile",
+syscallTable[0x3A] = "NtWriteVirtualMemory",
+syscallTable[0x3B] = "ZwCloseObjectAuditAlarm",
+syscallTable[0x3C] = "ZwDuplicateObject",
+syscallTable[0x3D] = "ZwQueryAttributesFile",
+syscallTable[0x3E] = "NtClearEvent",
+syscallTable[0x3F] = "ZwReadVirtualMemory",
+syscallTable[0x40] = "NtOpenEvent",
+syscallTable[0x41] = "NtAdjustPrivilegesToken",
+syscallTable[0x42] = "NtDuplicateToken",
+syscallTable[0x43] = "ZwContinue",
+syscallTable[0x44] = "ZwQueryDefaultUILanguage",
+syscallTable[0x45] = "NtQueueApcThread",
+syscallTable[0x46] = "ZwYieldExecution",
+syscallTable[0x47] = "ZwAddAtom",
+syscallTable[0x48] = "ZwCreateEvent",
+syscallTable[0x49] = "ZwQueryVolumeInformationFile",
+syscallTable[0x4A] = "NtCreateSection",
+syscallTable[0x4B] = "ZwFlushBuffersFile",
+syscallTable[0x4C] = "NtApphelpCacheControl",
+syscallTable[0x4D] = "ZwCreateProcessEx",
+syscallTable[0x4E] = "NtCreateThread",
+syscallTable[0x4F] = "NtIsProcessInJob",
+syscallTable[0x50] = "ZwProtectVirtualMemory",
+syscallTable[0x51] = "NtQuerySection",
+syscallTable[0x52] = "ZwResumeThread",
+syscallTable[0x53] = "NtTerminateThread",
+syscallTable[0x54] = "NtReadRequestData",
+syscallTable[0x55] = "ZwCreateFile",
+syscallTable[0x56] = "NtQueryEvent",
+syscallTable[0x57] = "ZwWriteRequestData",
+syscallTable[0x58] = "ZwOpenDirectoryObject",
+syscallTable[0x59] = "ZwAccessCheckByTypeAndAuditAlarm",
+syscallTable[0x5B] = "NtWaitForMultipleObjects",
+syscallTable[0x5C] = "NtSetInformationObject",
+syscallTable[0x5D] = "ZwCancelIoFile",
+syscallTable[0x5E] = "NtTraceEvent",
+syscallTable[0x5F] = "NtPowerInformation",
+syscallTable[0x60] = "ZwSetValueKey",
+syscallTable[0x61] = "NtCancelTimer",
+syscallTable[0x62] = "ZwSetTimer",
+syscallTable[0x63] = "ZwAccessCheckByType",
+syscallTable[0x64] = "ZwAccessCheckByTypeResultList",
+syscallTable[0x65] = "ZwAccessCheckByTypeResultListAndAuditAlarm",
+syscallTable[0x66] = "ZwAccessCheckByTypeResultListAndAuditAlarmByHandle",
+syscallTable[0x67] = "ZwAcquireCrossVmMutant",
+syscallTable[0x68] = "ZwAcquireProcessActivityReference",
+syscallTable[0x69] = "ZwAddAtomEx",
+syscallTable[0x6A] = "ZwAddBootEntry",
+syscallTable[0x6B] = "NtAddDriverEntry",
+syscallTable[0x6C] = "NtAdjustGroupsToken",
+syscallTable[0x6D] = "ZwAdjustTokenClaimsAndDeviceGroups",
+syscallTable[0x6E] = "NtAlertMultipleThreadByThreadId",
+syscallTable[0x6F] = "ZwAlertResumeThread",
+syscallTable[0x70] = "NtAlertThread",
+syscallTable[0x71] = "ZwAlertThreadByThreadId",
+syscallTable[0x72] = "ZwAlertThreadByThreadIdEx",
+syscallTable[0x73] = "ZwAllocateLocallyUniqueId",
+syscallTable[0x74] = "NtAllocateReserveObject",
+syscallTable[0x75] = "ZwAllocateUserPhysicalPages",
+syscallTable[0x76] = "NtAllocateUserPhysicalPagesEx",
+syscallTable[0x77] = "ZwAllocateUuids",
+syscallTable[0x78] = "NtAllocateVirtualMemoryEx",
+syscallTable[0x79] = "ZwAlpcAcceptConnectPort",
+syscallTable[0x7A] = "NtAlpcCancelMessage",
+syscallTable[0x7B] = "NtAlpcConnectPort",
+syscallTable[0x7C] = "NtAlpcConnectPortEx",
+syscallTable[0x7D] = "NtAlpcCreatePort",
+syscallTable[0x7E] = "ZwAlpcCreatePortSection",
+syscallTable[0x7F] = "ZwAlpcCreateResourceReserve",
+syscallTable[0x80] = "NtAlpcCreateSectionView",
+syscallTable[0x81] = "NtAlpcCreateSecurityContext",
+syscallTable[0x82] = "NtAlpcDeletePortSection",
+syscallTable[0x83] = "NtAlpcDeleteResourceReserve",
+syscallTable[0x84] = "ZwAlpcDeleteSectionView",
+syscallTable[0x85] = "ZwAlpcDeleteSecurityContext",
+syscallTable[0x86] = "NtAlpcDisconnectPort",
+syscallTable[0x87] = "NtAlpcImpersonateClientContainerOfPort",
+syscallTable[0x88] = "NtAlpcImpersonateClientOfPort",
+syscallTable[0x89] = "NtAlpcOpenSenderProcess",
+syscallTable[0x8A] = "NtAlpcOpenSenderThread",
+syscallTable[0x8B] = "ZwAlpcQueryInformation",
+syscallTable[0x8C] = "ZwAlpcQueryInformationMessage",
+syscallTable[0x8D] = "NtAlpcRevokeSecurityContext",
+syscallTable[0x8E] = "ZwAlpcSendWaitReceivePort",
+syscallTable[0x8F] = "NtAlpcSetInformation",
+syscallTable[0x90] = "ZwAreMappedFilesTheSame",
+syscallTable[0x91] = "NtAssignProcessToJobObject",
+syscallTable[0x92] = "ZwAssociateWaitCompletionPacket",
+syscallTable[0x93] = "ZwCallEnclave",
+syscallTable[0x94] = "ZwCancelIoFileEx",
+syscallTable[0x95] = "ZwCancelSynchronousIoFile",
+syscallTable[0x96] = "ZwCancelTimer2",
+syscallTable[0x97] = "ZwCancelWaitCompletionPacket",
+syscallTable[0x98] = "NtChangeProcessState",
+syscallTable[0x99] = "NtChangeThreadState",
+syscallTable[0x9A] = "NtCommitComplete",
+syscallTable[0x9B] = "ZwCommitEnlistment",
+syscallTable[0x9C] = "NtCommitRegistryTransaction",
+syscallTable[0x9D] = "ZwCommitTransaction",
+syscallTable[0x9E] = "NtCompactKeys",
+syscallTable[0x9F] = "NtCompareObjects",
+syscallTable[0x0A0] = "NtCompareSigningLevels",
+syscallTable[0x0A1] = "ZwCompareTokens",
+syscallTable[0x0A2] = "NtCompleteConnectPort",
+syscallTable[0x0A3] = "NtCompressKey",
+syscallTable[0x0A4] = "ZwConnectPort",
+syscallTable[0x0A5] = "ZwContinueEx",
+syscallTable[0x0A6] = "ZwConvertBetweenAuxiliaryCounterAndPerformanceCounter",
+syscallTable[0x0A7] = "ZwCopyFileChunk",
+syscallTable[0x0A8] = "ZwCreateCpuPartition",
+syscallTable[0x0A9] = "NtCreateCrossVmEvent",
+syscallTable[0x0AA] = "ZwCreateCrossVmMutant",
+syscallTable[0x0AB] = "NtCreateDebugObject",
+syscallTable[0x0AC] = "NtCreateDirectoryObject",
+syscallTable[0x0AD] = "ZwCreateDirectoryObjectEx",
+syscallTable[0x0AE] = "ZwCreateEnclave",
+syscallTable[0x0AF] = "NtCreateEnlistment",
+syscallTable[0x0B0] = "ZwCreateEventPair",
+syscallTable[0x0B1] = "ZwCreateIRTimer",
+syscallTable[0x0B2] = "NtCreateIoCompletion",
+syscallTable[0x0B3] = "NtCreateIoRing",
+syscallTable[0x0B4] = "ZwCreateJobObject",
+syscallTable[0x0B5] = "ZwCreateJobSet",
+syscallTable[0x0B6] = "ZwCreateKeyTransacted",
+syscallTable[0x0B7] = "ZwCreateKeyedEvent",
+syscallTable[0x0B8] = "NtCreateLowBoxToken",
+syscallTable[0x0B9] = "ZwCreateMailslotFile",
+syscallTable[0x0BA] = "NtCreateMutant",
+syscallTable[0x0BB] = "NtCreateNamedPipeFile",
+syscallTable[0x0BC] = "NtCreatePagingFile",
+syscallTable[0x0BD] = "ZwCreatePartition",
+syscallTable[0x0BE] = "ZwCreatePort",
+syscallTable[0x0BF] = "ZwCreatePrivateNamespace",
+syscallTable[0x0C0] = "NtCreateProcess",
+syscallTable[0x0C1] = "NtCreateProcessStateChange",
+syscallTable[0x0C2] = "ZwCreateProfile",
+syscallTable[0x0C3] = "ZwCreateProfileEx",
+syscallTable[0x0C4] = "ZwCreateRegistryTransaction",
+syscallTable[0x0C5] = "NtCreateResourceManager",
+syscallTable[0x0C6] = "NtCreateSectionEx",
+syscallTable[0x0C7] = "NtCreateSemaphore",
+syscallTable[0x0C8] = "ZwCreateSymbolicLinkObject",
+syscallTable[0x0C9] = "NtCreateThreadEx",
+syscallTable[0x0CA] = "ZwCreateThreadStateChange",
+syscallTable[0x0CB] = "ZwCreateTimer",
+syscallTable[0x0CC] = "NtCreateTimer2",
+syscallTable[0x0CD] = "NtCreateToken",
+syscallTable[0x0CE] = "NtCreateTokenEx",
+syscallTable[0x0CF] = "NtCreateTransaction",
+syscallTable[0x0D0] = "ZwCreateTransactionManager",
+syscallTable[0x0D1] = "NtCreateUserProcess",
+syscallTable[0x0D2] = "NtCreateWaitCompletionPacket",
+syscallTable[0x0D3] = "NtCreateWaitablePort",
+syscallTable[0x0D4] = "NtCreateWnfStateName",
+syscallTable[0x0D5] = "NtCreateWorkerFactory",
+syscallTable[0x0D6] = "NtDebugActiveProcess",
+syscallTable[0x0D7] = "NtDebugContinue",
+syscallTable[0x0D8] = "NtDeleteAtom",
+syscallTable[0x0D9] = "NtDeleteBootEntry",
+syscallTable[0x0DA] = "ZwDeleteDriverEntry",
+syscallTable[0x0DB] = "NtDeleteFile",
+syscallTable[0x0DC] = "NtDeleteKey",
+syscallTable[0x0DD] = "ZwDeleteObjectAuditAlarm",
+syscallTable[0x0DE] = "NtDeletePrivateNamespace",
+syscallTable[0x0DF] = "ZwDeleteValueKey",
+syscallTable[0x0E0] = "NtDeleteWnfStateData",
+syscallTable[0x0E1] = "ZwDeleteWnfStateName",
+syscallTable[0x0E2] = "ZwDirectGraphicsCall",
+syscallTable[0x0E3] = "NtDisableLastKnownGood",
+syscallTable[0x0E4] = "ZwDisplayString",
+syscallTable[0x0E5] = "NtDrawText",
+syscallTable[0x0E6] = "NtEnableLastKnownGood",
+syscallTable[0x0E7] = "NtEnumerateBootEntries",
+syscallTable[0x0E8] = "ZwEnumerateDriverEntries",
+syscallTable[0x0E9] = "NtEnumerateSystemEnvironmentValuesEx",
+syscallTable[0x0EA] = "NtEnumerateTransactionObject",
+syscallTable[0x0EB] = "NtExtendSection",
+syscallTable[0x0EC] = "ZwFilterBootOption",
+syscallTable[0x0ED] = "ZwFilterToken",
+syscallTable[0x0EE] = "ZwFilterTokenEx",
+syscallTable[0x0EF] = "ZwFlushBuffersFileEx",
+syscallTable[0x0F0] = "NtFlushInstallUILanguage",
+syscallTable[0x0F1] = "NtFlushInstructionCache",
+syscallTable[0x0F2] = "ZwFlushKey",
+syscallTable[0x0F3] = "ZwFlushProcessWriteBuffers",
+syscallTable[0x0F4] = "ZwFlushVirtualMemory",
+syscallTable[0x0F5] = "NtFlushWriteBuffer",
+syscallTable[0x0F6] = "ZwFreeUserPhysicalPages",
+syscallTable[0x0F7] = "NtFreezeRegistry",
+syscallTable[0x0F8] = "ZwFreezeTransactions",
+syscallTable[0x0F9] = "NtGetCachedSigningLevel",
+syscallTable[0x0FA] = "NtGetCompleteWnfStateSubscription",
+syscallTable[0x0FB] = "ZwGetContextThread",
+syscallTable[0x0FC] = "ZwGetCurrentProcessorNumber",
+syscallTable[0x0FD] = "NtGetCurrentProcessorNumberEx",
+syscallTable[0x0FE] = "ZwGetDevicePowerState",
+syscallTable[0x0FF] = "ZwGetMUIRegistryInfo",
+syscallTable[0x100] = "NtGetNextProcess",
+syscallTable[0x101] = "ZwGetNextThread",
+syscallTable[0x102] = "ZwGetNlsSectionPtr",
+syscallTable[0x103] = "NtGetNotificationResourceManager",
+syscallTable[0x104] = "ZwGetWriteWatch",
+syscallTable[0x105] = "ZwImpersonateAnonymousToken",
+syscallTable[0x106] = "ZwImpersonateThread",
+syscallTable[0x107] = "ZwInitializeEnclave",
+syscallTable[0x108] = "NtInitializeNlsFiles",
+syscallTable[0x109] = "NtInitializeRegistry",
+syscallTable[0x10A] = "NtInitiatePowerAction",
+syscallTable[0x10B] = "ZwIsSystemResumeAutomatic",
+syscallTable[0x10C] = "NtIsUILanguageComitted",
+syscallTable[0x10D] = "NtListenPort",
+syscallTable[0x10E] = "ZwLoadDriver",
+syscallTable[0x10F] = "NtLoadEnclaveData",
+syscallTable[0x110] = "NtLoadKey",
+syscallTable[0x111] = "ZwLoadKey2",
+syscallTable[0x112] = "ZwLoadKey3",
+syscallTable[0x113] = "NtLoadKeyEx",
+syscallTable[0x114] = "ZwLockFile",
+syscallTable[0x115] = "NtLockProductActivationKeys",
+syscallTable[0x116] = "ZwLockRegistryKey",
+syscallTable[0x117] = "NtLockVirtualMemory",
+syscallTable[0x118] = "NtMakePermanentObject",
+syscallTable[0x119] = "NtMakeTemporaryObject",
+syscallTable[0x11A] = "ZwManageHotPatch",
+syscallTable[0x11B] = "ZwManagePartition",
+syscallTable[0x11C] = "NtMapCMFModule",
+syscallTable[0x11D] = "NtMapUserPhysicalPages",
+syscallTable[0x11E] = "ZwMapViewOfSectionEx",
+syscallTable[0x11F] = "NtModifyBootEntry",
+syscallTable[0x120] = "ZwModifyDriverEntry",
+syscallTable[0x121] = "NtNotifyChangeDirectoryFile",
+syscallTable[0x122] = "NtNotifyChangeDirectoryFileEx",
+syscallTable[0x123] = "ZwNotifyChangeKey",
+syscallTable[0x124] = "NtNotifyChangeMultipleKeys",
+syscallTable[0x125] = "NtNotifyChangeSession",
+syscallTable[0x126] = "ZwOpenCpuPartition",
+syscallTable[0x127] = "NtOpenEnlistment",
+syscallTable[0x128] = "ZwOpenEventPair",
+syscallTable[0x129] = "NtOpenIoCompletion",
+syscallTable[0x12A] = "NtOpenJobObject",
+syscallTable[0x12B] = "NtOpenKeyEx",
+syscallTable[0x12C] = "ZwOpenKeyTransacted",
+syscallTable[0x12D] = "ZwOpenKeyTransactedEx",
+syscallTable[0x12E] = "NtOpenKeyedEvent",
+syscallTable[0x12F] = "NtOpenMutant",
+syscallTable[0x130] = "ZwOpenObjectAuditAlarm",
+syscallTable[0x131] = "NtOpenPartition",
+syscallTable[0x132] = "NtOpenPrivateNamespace",
+syscallTable[0x133] = "NtOpenProcessToken",
+syscallTable[0x134] = "ZwOpenRegistryTransaction",
+syscallTable[0x135] = "NtOpenResourceManager",
+syscallTable[0x136] = "ZwOpenSemaphore",
+syscallTable[0x137] = "ZwOpenSession",
+syscallTable[0x138] = "ZwOpenSymbolicLinkObject",
+syscallTable[0x139] = "ZwOpenThread",
+syscallTable[0x13A] = "ZwOpenTimer",
+syscallTable[0x13B] = "ZwOpenTransaction",
+syscallTable[0x13C] = "NtOpenTransactionManager",
+syscallTable[0x13D] = "ZwPlugPlayControl",
+syscallTable[0x13E] = "ZwPrePrepareComplete",
+syscallTable[0x13F] = "NtPrePrepareEnlistment",
+syscallTable[0x140] = "ZwPrepareComplete",
+syscallTable[0x141] = "ZwPrepareEnlistment",
+syscallTable[0x142] = "ZwPrivilegeCheck",
+syscallTable[0x143] = "NtPrivilegeObjectAuditAlarm",
+syscallTable[0x144] = "ZwPrivilegedServiceAuditAlarm",
+syscallTable[0x145] = "NtPropagationComplete",
+syscallTable[0x146] = "NtPropagationFailed",
+syscallTable[0x147] = "NtPssCaptureVaSpaceBulk",
+syscallTable[0x148] = "ZwPulseEvent",
+syscallTable[0x149] = "NtQueryAuxiliaryCounterFrequency",
+syscallTable[0x14A] = "ZwQueryBootEntryOrder",
+syscallTable[0x14B] = "NtQueryBootOptions",
+syscallTable[0x14C] = "ZwQueryDebugFilterState",
+syscallTable[0x14D] = "NtQueryDirectoryFileEx",
+syscallTable[0x14E] = "ZwQueryDirectoryObject",
+syscallTable[0x14F] = "NtQueryDriverEntryOrder",
+syscallTable[0x150] = "ZwQueryEaFile",
+syscallTable[0x151] = "NtQueryFullAttributesFile",
+syscallTable[0x152] = "NtQueryInformationAtom",
+syscallTable[0x153] = "NtQueryInformationByName",
+syscallTable[0x154] = "ZwQueryInformationCpuPartition",
+syscallTable[0x155] = "NtQueryInformationEnlistment",
+syscallTable[0x156] = "NtQueryInformationJobObject",
+syscallTable[0x157] = "NtQueryInformationPort",
+syscallTable[0x158] = "NtQueryInformationResourceManager",
+syscallTable[0x159] = "ZwQueryInformationTransaction",
+syscallTable[0x15A] = "NtQueryInformationTransactionManager",
+syscallTable[0x15B] = "ZwQueryInformationWorkerFactory",
+syscallTable[0x15C] = "NtQueryInstallUILanguage",
+syscallTable[0x15D] = "NtQueryIntervalProfile",
+syscallTable[0x15E] = "NtQueryIoCompletion",
+syscallTable[0x15F] = "NtQueryIoRingCapabilities",
+syscallTable[0x160] = "ZwQueryLicenseValue",
+syscallTable[0x161] = "ZwQueryMultipleValueKey",
+syscallTable[0x162] = "ZwQueryMutant",
+syscallTable[0x163] = "NtQueryOpenSubKeys",
+syscallTable[0x164] = "NtQueryOpenSubKeysEx",
+syscallTable[0x165] = "NtQueryPortInformationProcess",
+syscallTable[0x166] = "NtQueryQuotaInformationFile",
+syscallTable[0x167] = "ZwQuerySecurityAttributesToken",
+syscallTable[0x168] = "NtQuerySecurityObject",
+syscallTable[0x169] = "NtQuerySecurityPolicy",
+syscallTable[0x16A] = "ZwQuerySemaphore",
+syscallTable[0x16B] = "NtQuerySymbolicLinkObject",
+syscallTable[0x16C] = "NtQuerySystemEnvironmentValue",
+syscallTable[0x16D] = "NtQuerySystemEnvironmentValueEx",
+syscallTable[0x16E] = "NtQuerySystemInformationEx",
+syscallTable[0x16F] = "ZwQueryTimerResolution",
+syscallTable[0x170] = "ZwQueryWnfStateData",
+syscallTable[0x171] = "NtQueryWnfStateNameInformation",
+syscallTable[0x172] = "NtQueueApcThreadEx",
+syscallTable[0x173] = "NtQueueApcThreadEx2",
+syscallTable[0x174] = "ZwRaiseException",
+syscallTable[0x175] = "NtRaiseHardError",
+syscallTable[0x176] = "ZwReadOnlyEnlistment",
+syscallTable[0x177] = "NtReadVirtualMemoryEx",
+syscallTable[0x178] = "ZwRecoverEnlistment",
+syscallTable[0x179] = "ZwRecoverResourceManager",
+syscallTable[0x17A] = "NtRecoverTransactionManager",
+syscallTable[0x17B] = "NtRegisterProtocolAddressInformation",
+syscallTable[0x17C] = "NtRegisterThreadTerminatePort",
+syscallTable[0x17D] = "NtReleaseKeyedEvent",
+syscallTable[0x17E] = "NtReleaseWorkerFactoryWorker",
+syscallTable[0x17F] = "ZwRemoveIoCompletionEx",
+syscallTable[0x180] = "ZwRemoveProcessDebug",
+syscallTable[0x181] = "NtRenameKey",
+syscallTable[0x182] = "NtRenameTransactionManager",
+syscallTable[0x183] = "NtReplaceKey",
+syscallTable[0x184] = "NtReplacePartitionUnit",
+syscallTable[0x185] = "NtReplyWaitReplyPort",
+syscallTable[0x186] = "NtRequestPort",
+syscallTable[0x187] = "ZwResetEvent",
+syscallTable[0x188] = "ZwResetWriteWatch",
+syscallTable[0x189] = "NtRestoreKey",
+syscallTable[0x18A] = "ZwResumeProcess",
+syscallTable[0x18B] = "ZwRevertContainerImpersonation",
+syscallTable[0x18C] = "ZwRollbackComplete",
+syscallTable[0x18D] = "NtRollbackEnlistment",
+syscallTable[0x18E] = "ZwRollbackRegistryTransaction",
+syscallTable[0x18F] = "ZwRollbackTransaction",
+syscallTable[0x190] = "NtRollforwardTransactionManager",
+syscallTable[0x191] = "NtSaveKey",
+syscallTable[0x192] = "NtSaveKeyEx",
+syscallTable[0x193] = "ZwSaveMergedKeys",
+syscallTable[0x194] = "NtSecureConnectPort",
+syscallTable[0x195] = "ZwSerializeBoot",
+syscallTable[0x196] = "ZwSetBootEntryOrder",
+syscallTable[0x197] = "NtSetBootOptions",
+syscallTable[0x198] = "ZwSetCachedSigningLevel",
+syscallTable[0x199] = "NtSetCachedSigningLevel2",
+syscallTable[0x19A] = "NtSetContextThread",
+syscallTable[0x19B] = "ZwSetDebugFilterState",
+syscallTable[0x19C] = "NtSetDefaultHardErrorPort",
+syscallTable[0x19D] = "NtSetDefaultLocale",
+syscallTable[0x19E] = "ZwSetDefaultUILanguage",
+syscallTable[0x19F] = "NtSetDriverEntryOrder",
+syscallTable[0x1A0] = "ZwSetEaFile",
+syscallTable[0x1A1] = "ZwSetEventEx",
+syscallTable[0x1A2] = "NtSetHighEventPair",
+syscallTable[0x1A3] = "ZwSetHighWaitLowEventPair",
+syscallTable[0x1A4] = "NtSetIRTimer",
+syscallTable[0x1A5] = "ZwSetInformationCpuPartition",
+syscallTable[0x1A6] = "NtSetInformationDebugObject",
+syscallTable[0x1A7] = "NtSetInformationEnlistment",
+syscallTable[0x1A8] = "NtSetInformationIoRing",
+syscallTable[0x1A9] = "ZwSetInformationJobObject",
+syscallTable[0x1AA] = "ZwSetInformationKey",
+syscallTable[0x1AB] = "NtSetInformationResourceManager",
+syscallTable[0x1AC] = "NtSetInformationSymbolicLink",
+syscallTable[0x1AD] = "NtSetInformationToken",
+syscallTable[0x1AE] = "NtSetInformationTransaction",
+syscallTable[0x1AF] = "ZwSetInformationTransactionManager",
+syscallTable[0x1B0] = "ZwSetInformationVirtualMemory",
+syscallTable[0x1B1] = "NtSetInformationWorkerFactory",
+syscallTable[0x1B2] = "NtSetIntervalProfile",
+syscallTable[0x1B3] = "ZwSetIoCompletion",
+syscallTable[0x1B4] = "ZwSetIoCompletionEx",
+syscallTable[0x1B5] = "ZwSetLdtEntries",
+syscallTable[0x1B6] = "ZwSetLowEventPair",
+syscallTable[0x1B7] = "ZwSetLowWaitHighEventPair",
+syscallTable[0x1B8] = "ZwSetQuotaInformationFile",
+syscallTable[0x1B9] = "NtSetSecurityObject",
+syscallTable[0x1BA] = "ZwSetSystemEnvironmentValue",
+syscallTable[0x1BB] = "ZwSetSystemEnvironmentValueEx",
+syscallTable[0x1BC] = "ZwSetSystemInformation",
+syscallTable[0x1BD] = "ZwSetSystemPowerState",
+syscallTable[0x1BE] = "ZwSetSystemTime",
+syscallTable[0x1BF] = "NtSetThreadExecutionState",
+syscallTable[0x1C0] = "ZwSetTimer2",
+syscallTable[0x1C1] = "ZwSetTimerEx",
+syscallTable[0x1C2] = "NtSetTimerResolution",
+syscallTable[0x1C3] = "NtSetUuidSeed",
+syscallTable[0x1C4] = "ZwSetVolumeInformationFile",
+syscallTable[0x1C5] = "NtSetWnfProcessNotificationEvent",
+syscallTable[0x1C6] = "ZwShutdownSystem",
+syscallTable[0x1C7] = "ZwShutdownWorkerFactory",
+syscallTable[0x1C8] = "ZwSignalAndWaitForSingleObject",
+syscallTable[0x1C9] = "ZwSinglePhaseReject",
+syscallTable[0x1CA] = "ZwStartProfile",
+syscallTable[0x1CB] = "ZwStopProfile",
+syscallTable[0x1CC] = "ZwSubmitIoRing",
+syscallTable[0x1CD] = "NtSubscribeWnfStateChange",
+syscallTable[0x1CE] = "ZwSuspendProcess",
+syscallTable[0x1CF] = "NtSuspendThread",
+syscallTable[0x1D0] = "ZwSystemDebugControl",
+syscallTable[0x1D1] = "NtTerminateEnclave",
+syscallTable[0x1D2] = "NtTerminateJobObject",
+syscallTable[0x1D3] = "ZwTestAlert",
+syscallTable[0x1D4] = "ZwThawRegistry",
+syscallTable[0x1D5] = "ZwThawTransactions",
+syscallTable[0x1D6] = "NtTraceControl",
+syscallTable[0x1D7] = "NtTranslateFilePath",
+syscallTable[0x1D8] = "ZwUmsThreadYield",
+syscallTable[0x1D9] = "ZwUnloadDriver",
+syscallTable[0x1DA] = "NtUnloadKey",
+syscallTable[0x1DB] = "NtUnloadKey2",
+syscallTable[0x1DC] = "ZwUnloadKeyEx",
+syscallTable[0x1DD] = "ZwUnlockFile",
+syscallTable[0x1DE] = "ZwUnlockVirtualMemory",
+syscallTable[0x1DF] = "NtUnmapViewOfSectionEx",
+syscallTable[0x1E0] = "NtUnsubscribeWnfStateChange",
+syscallTable[0x1E1] = "ZwUpdateWnfStateData",
+syscallTable[0x1E2] = "ZwVdmControl",
+syscallTable[0x1E3] = "NtWaitForAlertByThreadId",
+syscallTable[0x1E4] = "ZwWaitForDebugEvent",
+syscallTable[0x1E5] = "NtWaitForKeyedEvent",
+syscallTable[0x1E6] = "ZwWaitForWorkViaWorkerFactory",
+syscallTable[0x1E7] = "ZwWaitHighEventPair",
+syscallTable[0x1E8] = "NtWaitLowEventPair";
+    
+
+
+}
+// Print syscall number and arguments
+VOID SysBefore(ADDRINT ip, ADDRINT num, ADDRINT arg0, ADDRINT arg1, ADDRINT arg2, ADDRINT arg3, ADDRINT arg4, ADDRINT arg5)
+{
+#if defined(TARGET_LINUX) && defined(TARGET_IA32)
+    // On ia32 Linux, there are only 5 registers for passing system call arguments,
+    // but mmap needs 6. For mmap on ia32, the first argument to the system call
+    // is a pointer to an array of the 6 arguments
+    if (num == SYS_mmap)
+    {
+        ADDRINT* mmapArgs = reinterpret_cast<ADDRINT*>(arg0);
+        arg0 = mmapArgs[0];
+        arg1 = mmapArgs[1];
+        arg2 = mmapArgs[2];
+        arg3 = mmapArgs[3];
+        arg4 = mmapArgs[4];
+        arg5 = mmapArgs[5];
+    }
+#endif
+    
+    fprintf(trace, "0x%lx: %ld: %s(0x%lx, 0x%lx, 0x%lx, 0x%lx, 0x%lx, 0x%lx)", (unsigned long)ip-0x12, (long)num, syscallTable[num],(unsigned long)arg0,
+        (unsigned long)arg1, (unsigned long)arg2, (unsigned long)arg3, (unsigned long)arg4, (unsigned long)arg5);
+}
+
+// Print the return value of the system call
+VOID SysAfter(ADDRINT ret)
+{
+    fprintf(trace, "returns: 0x%lx\n", (unsigned long)ret);
+    fflush(trace);
+}
+
+VOID SyscallEntry(THREADID threadIndex, CONTEXT* ctxt, SYSCALL_STANDARD std, VOID* v)
+{
+    SysBefore(PIN_GetContextReg(ctxt, REG_INST_PTR), PIN_GetSyscallNumber(ctxt, std), PIN_GetSyscallArgument(ctxt, std, 0),
+        PIN_GetSyscallArgument(ctxt, std, 1), PIN_GetSyscallArgument(ctxt, std, 2), PIN_GetSyscallArgument(ctxt, std, 3),
+        PIN_GetSyscallArgument(ctxt, std, 4), PIN_GetSyscallArgument(ctxt, std, 5));
+}
+
+VOID SyscallExit(THREADID threadIndex, CONTEXT* ctxt, SYSCALL_STANDARD std, VOID* v)
+{
+    SysAfter(PIN_GetSyscallReturn(ctxt, std));
+}
+
+// Is called for every instruction and instruments syscalls
+VOID Instruction(INS ins, VOID* v)
+{
+    // For O/S's (macOS*) that don't support PIN_AddSyscallEntryFunction(),
+    // instrument the system call instruction.
+
+    if (INS_IsSyscall(ins) && INS_IsValidForIpointAfter(ins))
+    {
+        // Arguments and syscall number is only available before
+        INS_InsertCall(ins, IPOINT_BEFORE, AFUNPTR(SysBefore), IARG_INST_PTR, IARG_SYSCALL_NUMBER, IARG_SYSARG_VALUE, 0,
+            IARG_SYSARG_VALUE, 1, IARG_SYSARG_VALUE, 2, IARG_SYSARG_VALUE, 3, IARG_SYSARG_VALUE, 4, IARG_SYSARG_VALUE,
+            5, IARG_END);
+
+        // return value only available after
+        INS_InsertCall(ins, IPOINT_AFTER, AFUNPTR(SysAfter), IARG_SYSRET_VALUE, IARG_END);
+    }
+}
+
+VOID Fini(INT32 code, VOID* v)
+{
+    fprintf(trace, "#eof\n");
+    fclose(trace);
+}
+
+/* ===================================================================== */
+/* Print Help Message                                                    */
+/* ===================================================================== */
+
+INT32 Usage()
+{
+    PIN_ERROR("This tool prints a log of system calls" + KNOB_BASE::StringKnobSummary() + "\n");
+    return -1;
+}
+
+/* ===================================================================== */
+/* Main                                                                  */
+/* ===================================================================== */
+
+int main(int argc, char* argv[])
+{
+    if (PIN_Init(argc, argv)) return Usage();
+
+    trace = fopen("strace.out", "w");
+    Init_syscall_table();
+    INS_AddInstrumentFunction(Instruction, 0);
+    PIN_AddSyscallEntryFunction(SyscallEntry, 0);
+    PIN_AddSyscallExitFunction(SyscallExit, 0);
+
+    PIN_AddFiniFunction(Fini, 0);
+
+    // Never returns
+    PIN_StartProgram();
+
+    return 0;
+}
