@@ -1,0 +1,1954 @@
+const char* SynchronizationAPIs[] = {
+    // 互斥体 (Mutex)
+    "kernel32.dll!CreateMutexA",
+    "kernel32.dll!CreateMutexW",
+    "kernel32.dll!CreateMutexExA",
+    "kernel32.dll!CreateMutexExW",
+    "kernel32.dll!OpenMutexA",
+    "kernel32.dll!OpenMutexW",
+    "kernel32.dll!ReleaseMutex",
+    "ntdll.dll!NtCreateMutant",
+    "ntdll.dll!NtOpenMutant",
+    "ntdll.dll!NtReleaseMutant",
+    
+    // 信号量 (Semaphore)
+    "kernel32.dll!CreateSemaphoreA",
+    "kernel32.dll!CreateSemaphoreW",
+    "kernel32.dll!CreateSemaphoreExW",
+    "kernel32.dll!OpenSemaphoreA",
+    "kernel32.dll!OpenSemaphoreW",
+    "kernel32.dll!ReleaseSemaphore",
+    "ntdll.dll!NtCreateSemaphore",
+    "ntdll.dll!NtOpenSemaphore",
+    "ntdll.dll!NtReleaseSemaphore",
+    
+    // 事件 (Event)
+    "kernel32.dll!CreateEventA",
+    "kernel32.dll!CreateEventW",
+    "kernel32.dll!CreateEventExA",
+    "kernel32.dll!CreateEventExW",
+    "kernel32.dll!OpenEventA",
+    "kernel32.dll!OpenEventW",
+    "kernel32.dll!SetEvent",
+    "kernel32.dll!ResetEvent",
+    "kernel32.dll!PulseEvent",
+    "ntdll.dll!NtCreateEvent",
+    "ntdll.dll!NtOpenEvent",
+    "ntdll.dll!NtSetEvent",
+    "ntdll.dll!NtResetEvent",
+    "ntdll.dll!NtPulseEvent",
+    
+    // 临界区 (Critical Section)
+    "kernel32.dll!InitializeCriticalSection",
+    "kernel32.dll!InitializeCriticalSectionAndSpinCount",
+    "kernel32.dll!InitializeCriticalSectionEx",
+    "kernel32.dll!EnterCriticalSection",
+    "kernel32.dll!TryEnterCriticalSection",
+    "kernel32.dll!LeaveCriticalSection",
+    "kernel32.dll!DeleteCriticalSection",
+    "ntdll.dll!RtlInitializeCriticalSection",
+    "ntdll.dll!RtlEnterCriticalSection",
+    "ntdll.dll!RtlLeaveCriticalSection",
+    "ntdll.dll!RtlDeleteCriticalSection",
+    
+    // SRW锁 (Slim Reader/Writer Lock)
+    "kernel32.dll!InitializeSRWLock",
+    "kernel32.dll!AcquireSRWLockExclusive",
+    "kernel32.dll!AcquireSRWLockShared",
+    "kernel32.dll!TryAcquireSRWLockExclusive",
+    "kernel32.dll!TryAcquireSRWLockShared",
+    "kernel32.dll!ReleaseSRWLockExclusive",
+    "kernel32.dll!ReleaseSRWLockShared",
+    "ntdll.dll!RtlInitializeSRWLock",
+    "ntdll.dll!RtlAcquireSRWLockExclusive",
+    "ntdll.dll!RtlAcquireSRWLockShared",
+    "ntdll.dll!RtlReleaseSRWLockExclusive",
+    "ntdll.dll!RtlReleaseSRWLockShared",
+    
+    // 等待函数
+    "kernel32.dll!WaitForSingleObject",
+    "kernel32.dll!WaitForSingleObjectEx",
+    "kernel32.dll!WaitForMultipleObjects",
+    "kernel32.dll!WaitForMultipleObjectsEx",
+    "kernel32.dll!SignalObjectAndWait",
+    "kernel32.dll!WaitForInputIdle",
+    "kernel32.dll!MsgWaitForMultipleObjects",
+    "kernel32.dll!MsgWaitForMultipleObjectsEx",
+    "ntdll.dll!NtWaitForSingleObject",
+    "ntdll.dll!NtWaitForMultipleObjects",
+    "ntdll.dll!NtSignalAndWaitForSingleObject",
+    
+    // 互锁操作 (Interlocked Operations)
+    "kernel32.dll!InterlockedIncrement",
+    "kernel32.dll!InterlockedDecrement",
+    "kernel32.dll!InterlockedExchange",
+    "kernel32.dll!InterlockedCompareExchange",
+    "ntdll.dll!RtlInterlockedIncrement",
+    "ntdll.dll!RtlInterlockedDecrement",
+    
+    // 条件变量
+    "kernel32.dll!InitializeConditionVariable",
+    "kernel32.dll!SleepConditionVariableCS",
+    "kernel32.dll!SleepConditionVariableSRW",
+    "kernel32.dll!WakeConditionVariable",
+    "kernel32.dll!WakeAllConditionVariable",
+    "ntdll.dll!RtlInitializeConditionVariable",
+    "ntdll.dll!RtlSleepConditionVariableCS",
+    "ntdll.dll!RtlWakeConditionVariable",
+    
+    nullptr
+};
+const char* CompletionPortAPIs[] = {
+    // IOCP创建和管理
+    "kernel32.dll!CreateIoCompletionPort",
+    "kernel32.dll!GetQueuedCompletionStatus",
+    "kernel32.dll!GetQueuedCompletionStatusEx",
+    "kernel32.dll!PostQueuedCompletionStatus",
+    "kernel32.dll!CloseHandle",  // 用于关闭IOCP句柄
+    "ntdll.dll!NtCreateIoCompletion",
+    "ntdll.dll!NtSetIoCompletion",
+    "ntdll.dll!NtRemoveIoCompletion",
+    "ntdll.dll!NtRemoveIoCompletionEx",
+    
+    // 重叠I/O操作
+    "kernel32.dll!ReadFile",        // 用于重叠I/O
+    "kernel32.dll!WriteFile",       // 用于重叠I/O
+    "kernel32.dll!ReadFileEx",
+    "kernel32.dll!WriteFileEx",
+    "kernel32.dll!SetFileCompletionNotificationModes",
+    "kernel32.dll!CancelIo",
+    "kernel32.dll!CancelIoEx",
+    "kernel32.dll!CancelSynchronousIo",
+    "kernel32.dll!GetOverlappedResult",
+    "kernel32.dll!GetOverlappedResultEx",
+    "ntdll.dll!NtReadFile",
+    "ntdll.dll!NtWriteFile",
+    "ntdll.dll!NtFlushBuffersFile",
+    
+    // Socket IOCP
+    "ws2_32.dll!WSASend",
+    "ws2_32.dll!WSARecv",
+    "ws2_32.dll!WSASendTo",
+    "ws2_32.dll!WSARecvFrom",
+    "ws2_32.dll!AcceptEx",
+    "ws2_32.dll!ConnectEx",
+    "ws2_32.dll!DisconnectEx",
+    "ws2_32.dll!TransmitFile",
+    "ws2_32.dll!TransmitPackets",
+    
+    // 命名管道 IOCP
+    "kernel32.dll!CreateNamedPipeA",
+    "kernel32.dll!CreateNamedPipeW",
+    "kernel32.dll!ConnectNamedPipe",
+    "kernel32.dll!DisconnectNamedPipe",
+    "kernel32.dll!CallNamedPipeA",
+    "kernel32.dll!CallNamedPipeW",
+    "kernel32.dll!TransactNamedPipe",
+    
+    // 线程池与IOCP
+    "kernel32.dll!CreateThreadpoolIo",
+    "kernel32.dll!StartThreadpoolIo",
+    "kernel32.dll!CancelThreadpoolIo",
+    "kernel32.dll!WaitForThreadpoolIoCallbacks",
+    "kernel32.dll!CloseThreadpoolIo",
+    "ntdll.dll!TpAllocIoCompletion",
+    "ntdll.dll!TpReleaseIoCompletion",
+    "ntdll.dll!TpWaitForIoCompletion",
+    
+    nullptr
+};
+const char* ExceptionAPIs[] = {
+    // 异常处理框架
+    "kernel32.dll!SetUnhandledExceptionFilter",
+    "kernel32.dll!UnhandledExceptionFilter",
+    "kernel32.dll!GetUnhandledExceptionFilter",
+    "kernel32.dll!RaiseException",
+    "kernel32.dll!RaiseFailFastException",
+    "ntdll.dll!NtRaiseException",
+    "ntdll.dll!RtlRaiseException",
+    "ntdll.dll!RtlRaiseStatus",
+    "ntdll.dll!KiRaiseException",
+    
+    // 向量化异常处理 (VEH)
+    "kernel32.dll!AddVectoredExceptionHandler",
+    "kernel32.dll!AddVectoredContinueHandler",
+    "kernel32.dll!RemoveVectoredExceptionHandler",
+    "kernel32.dll!RemoveVectoredContinueHandler",
+    "ntdll.dll!RtlAddVectoredExceptionHandler",
+    "ntdll.dll!RtlRemoveVectoredExceptionHandler",
+    
+    // 结构化异常处理 (SEH)
+    "ntdll.dll!RtlDispatchException",
+    "ntdll.dll!RtlpExecuteHandlerForException",
+    "ntdll.dll!RtlInstallFunctionTableCallback",
+    "ntdll.dll!KiUserExceptionDispatcher",
+    
+    // 异常信息
+    "kernel32.dll!GetExceptionInformation",
+    "kernel32.dll!GetExceptionCode",
+    "ntdll.dll!NtQueryInformationProcess",  // 查询异常端口
+    "ntdll.dll!NtSetInformationProcess",    // 设置异常端口
+    
+    // 调试器相关异常
+    "kernel32.dll!DebugBreak",
+    "kernel32.dll!OutputDebugStringA",
+    "kernel32.dll!OutputDebugStringW",
+    "kernel32.dll!IsDebuggerPresent",
+    "kernel32.dll!CheckRemoteDebuggerPresent",
+    
+    // 应用程序恢复与重启
+    "kernel32.dll!RegisterApplicationRestart",
+    "kernel32.dll!UnregisterApplicationRestart",
+    "kernel32.dll!RegisterApplicationRecoveryCallback",
+    "kernel32.dll!UnregisterApplicationRecoveryCallback",
+    "kernel32.dll!ApplicationRecoveryInProgress",
+    "kernel32.dll!ApplicationRecoveryFinished",
+    
+    // 错误处理
+    "kernel32.dll!GetLastError",
+    "kernel32.dll!SetLastError",
+    "kernel32.dll!SetLastErrorEx",
+    "kernel32.dll!FormatMessageA",
+    "kernel32.dll!FormatMessageW",
+    "ntdll.dll!RtlGetLastWin32Error",
+    "ntdll.dll!RtlSetLastWin32Error",
+    "ntdll.dll!RtlNtStatusToDosError",
+    
+    // 终止处理
+    "kernel32.dll!TerminateProcess",
+    "kernel32.dll!ExitProcess",
+    "kernel32.dll!TerminateThread",
+    "kernel32.dll!ExitThread",
+    "ntdll.dll!NtTerminateProcess",
+    "ntdll.dll!NtTerminateThread",
+    "ntdll.dll!RtlExitUserProcess",
+    "ntdll.dll!RtlExitUserThread",
+    
+    nullptr
+};
+const char* ShellExecuteAPIs[] = {
+    // ShellExecute系列
+    "shell32.dll!ShellExecuteA",
+    "shell32.dll!ShellExecuteW",
+    "shell32.dll!ShellExecuteExA",
+    "shell32.dll!ShellExecuteExW",
+    "shell32.dll!ShellExecuteInExplorerProcess",
+    
+    // 命令行执行
+    "kernel32.dll!WinExec",
+    "kernel32.dll!CreateProcessA",
+    "kernel32.dll!CreateProcessW",
+    "kernel32.dll!system",     // CRT函数
+    "msvcrt.dll!system",
+    "ucrtbase.dll!system",
+    
+    // WMI执行
+    "wbemdisp.dll!",
+    "wmiutils.dll!",
+    "wbemcomn.dll!",
+    
+    // PowerShell执行
+    "system.management.automation.dll!",
+    "powershell.exe!",
+    "System.Management.Automation!",
+    
+    // 脚本宿主
+    "wscript.exe!",
+    "cscript.exe!",
+    "mshta.exe!",
+    
+    // MSI执行
+    "msi.dll!MsiInstallProductA",
+    "msi.dll!MsiInstallProductW",
+    "msiexec.exe!",
+    
+    // COM对象执行
+    "shell32.dll!ShellWindows",
+    "shell32.dll!ShellBrowserWindow",
+    "shell32.dll!Shell.Explorer",
+    
+    // 计划任务
+    "taskschd.dll!",
+    "schtasks.exe!",
+    "at.exe!",
+    
+    // 服务执行
+    "advapi32.dll!StartServiceA",
+    "advapi32.dll!StartServiceW",
+    "services.exe!",
+    
+    // 注册表Run键
+    "advapi32.dll!RegSetValueExA",
+    "advapi32.dll!RegSetValueExW",
+    
+    // 快捷方式执行
+    "shell32.dll!IShellLink",
+    "shell32.dll!ShellLink",
+    
+    // URL执行
+    "urlmon.dll!URLDownloadToFileA",
+    "urlmon.dll!URLDownloadToFileW",
+    "ieframe.dll!",
+    
+    // 文件关联执行
+    "shell32.dll!FindExecutableA",
+    "shell32.dll!FindExecutableW",
+    "shell32.dll!AssocQueryStringA",
+    "shell32.dll!AssocQueryStringW",
+    
+    nullptr
+};
+const char* CryptographyAPIs[] = {
+    // CryptoAPI (传统)
+    "advapi32.dll!CryptAcquireContextA",
+    "advapi32.dll!CryptAcquireContextW",
+    "advapi32.dll!CryptReleaseContext",
+    "advapi32.dll!CryptGenKey",
+    "advapi32.dll!CryptImportKey",
+    "advapi32.dll!CryptExportKey",
+    "advapi32.dll!CryptDestroyKey",
+    "advapi32.dll!CryptEncrypt",
+    "advapi32.dll!CryptDecrypt",
+    "advapi32.dll!CryptHashData",
+    "advapi32.dll!CryptCreateHash",
+    "advapi32.dll!CryptDestroyHash",
+    "advapi32.dll!CryptSignHashA",
+    "advapi32.dll!CryptSignHashW",
+    "advapi32.dll!CryptVerifySignatureA",
+    "advapi32.dll!CryptVerifySignatureW",
+    "advapi32.dll!CryptGenRandom",
+    "advapi32.dll!CryptGetKeyParam",
+    "advapi32.dll!CryptSetKeyParam",
+    
+    // CNG API (下一代)
+    "bcrypt.dll!BCryptOpenAlgorithmProvider",
+    "bcrypt.dll!BCryptCloseAlgorithmProvider",
+    "bcrypt.dll!BCryptGenerateSymmetricKey",
+    "bcrypt.dll!BCryptGenerateKeyPair",
+    "bcrypt.dll!BCryptImportKey",
+    "bcrypt.dll!BCryptImportKeyPair",
+    "bcrypt.dll!BCryptExportKey",
+    "bcrypt.dll!BCryptDestroyKey",
+    "bcrypt.dll!BCryptEncrypt",
+    "bcrypt.dll!BCryptDecrypt",
+    "bcrypt.dll!BCryptHashData",
+    "bcrypt.dll!BCryptCreateHash",
+    "bcrypt.dll!BCryptDestroyHash",
+    "bcrypt.dll!BCryptSignHash",
+    "bcrypt.dll!BCryptVerifySignature",
+    "bcrypt.dll!BCryptGenRandom",
+    "bcrypt.dll!BCryptDeriveKey",
+    "bcrypt.dll!BCryptSetProperty",
+    "bcrypt.dll!BCryptGetProperty",
+    
+    // NCrypt API (密钥存储)
+    "ncrypt.dll!NCryptOpenStorageProvider",
+    "ncrypt.dll!NCryptOpenKey",
+    "ncrypt.dll!NCryptCreatePersistedKey",
+    "ncrypt.dll!NCryptDeleteKey",
+    "ncrypt.dll!NCryptEncrypt",
+    "ncrypt.dll!NCryptDecrypt",
+    "ncrypt.dll!NCryptSignHash",
+    "ncrypt.dll!NCryptVerifySignature",
+    "ncrypt.dll!NCryptExportKey",
+    "ncrypt.dll!NCryptImportKey",
+    "ncrypt.dll!NCryptFreeObject",
+    "ncrypt.dll!NCryptSetProperty",
+    "ncrypt.dll!NCryptGetProperty",
+    
+    // 证书操作
+    "crypt32.dll!CertOpenStore",
+    "crypt32.dll!CertCloseStore",
+    "crypt32.dll!CertFindCertificateInStore",
+    "crypt32.dll!CertGetNameStringA",
+    "crypt32.dll!CertGetNameStringW",
+    "crypt32.dll!CertCreateSelfSignCertificate",
+    "crypt32.dll!CertAddCertificateContextToStore",
+    "crypt32.dll!CertDeleteCertificateFromStore",
+    "crypt32.dll!CertFreeCertificateContext",
+    "crypt32.dll!CertVerifyCertificateChainPolicy",
+    "crypt32.dll!CertGetCertificateChain",
+    
+    // 数据保护 API (DPAPI)
+    "crypt32.dll!CryptProtectData",
+    "crypt32.dll!CryptUnprotectData",
+    "crypt32.dll!CryptProtectMemory",
+    "crypt32.dll!CryptUnprotectMemory",
+    
+    // 安全通道 (SSL/TLS)
+    "secur32.dll!InitializeSecurityContextA",
+    "secur32.dll!InitializeSecurityContextW",
+    "secur32.dll!AcceptSecurityContext",
+    "secur32.dll!DeleteSecurityContext",
+    "secur32.dll!QuerySecurityContextToken",
+    "secur32.dll!EncryptMessage",
+    "secur32.dll!DecryptMessage",
+    "schannel.dll!SslEncryptPacket",
+    "schannel.dll!SslDecryptPacket",
+    
+    // 哈希函数
+    "advapi32.dll!MD5Init",
+    "advapi32.dll!MD5Update",
+    "advapi32.dll!MD5Final",
+    "advapi32.dll!SHAInit",
+    "advapi32.dll!SHAUpdate",
+    "advapi32.dll!SHAFinal",
+    
+    nullptr
+};
+const char* RandomNumberAPIs[] = {
+    // 加密安全的随机数
+    "advapi32.dll!CryptGenRandom",
+    "advapi32.dll!SystemFunction036",   // RtlGenRandom
+    "bcrypt.dll!BCryptGenRandom",
+    "ntdll.dll!RtlGenRandom",
+    "ntdll.dll!NtGenRandom",
+    
+    // 伪随机数生成
+    "kernel32.dll!RtlRandom",
+    "kernel32.dll!RtlRandomEx",
+    "ntdll.dll!RtlRandom",
+    "ntdll.dll!RtlRandomEx",
+    "ucrtbase.dll!rand",
+    "ucrtbase.dll!rand_s",
+    "msvcrt.dll!rand",
+    "msvcrt.dll!srand",
+    
+    // 系统熵源
+    "advapi32.dll!RtlGenRandom",
+    "kernel32.dll!GetSystemFirmwareTable",  // 可能用于获取熵
+    
+    // GUID生成 (通常包含随机数)
+    "ole32.dll!CoCreateGuid",
+    "ole32.dll!CreateGuid",
+    "rpcrt4.dll!UuidCreate",
+    "rpcrt4.dll!UuidCreateSequential",
+    
+    // 性能计数器 (作为熵源)
+    "kernel32.dll!QueryPerformanceCounter",
+    "kernel32.dll!QueryPerformanceFrequency",
+    "ntdll.dll!NtQueryPerformanceCounter",
+    "kernel32.dll!GetTickCount",
+    "kernel32.dll!GetTickCount64",
+    
+    // 硬件随机数
+    "kernel32.dll!RdRand",
+    "kernel32.dll!RdSeed",
+    
+    nullptr
+};
+const char* COMInitializationAPIs[] = {
+    // COM 基础初始化
+    "ole32.dll!CoInitialize",
+    "ole32.dll!CoInitializeEx",
+    "ole32.dll!CoUninitialize",
+    "ole32.dll!OleInitialize",
+    "ole32.dll!OleUninitialize",
+    "ole32.dll!CoGetApartmentType",
+    "ole32.dll!CoInitializeSecurity",
+    
+    // COM 对象创建
+    "ole32.dll!CoCreateInstance",
+    "ole32.dll!CoCreateInstanceEx",
+    "ole32.dll!CoGetClassObject",
+    "ole32.dll!CoCreateFreeThreadedMarshaler",
+    "ole32.dll!CoGetObject",
+    "ole32.dll!CoGetObjectContext",
+    
+    // COM 注册表
+    "ole32.dll!CoRegisterClassObject",
+    "ole32.dll!CoRevokeClassObject",
+    "ole32.dll!CoRegisterPSClsid",
+    "ole32.dll!DllRegisterServer",
+    "ole32.dll!DllUnregisterServer",
+    "ole32.dll!DllGetClassObject",
+    "ole32.dll!DllCanUnloadNow",
+    
+    // COM 接口
+    "ole32.dll!CoGetInterfaceAndReleaseStream",
+    "ole32.dll!CoMarshalInterface",
+    "ole32.dll!CoUnmarshalInterface",
+    "ole32.dll!CoMarshalInterThreadInterfaceInStream",
+    "ole32.dll!CoGetStandardMarshal",
+    
+    // COM 引用计数
+    "ole32.dll!IUnknown_AddRef_Proxy",
+    "ole32.dll!IUnknown_Release_Proxy",
+    "ole32.dll!IUnknown_QueryInterface_Proxy",
+    
+    // COM 注册表操作
+    "advapi32.dll!RegOpenKeyExA",
+    "advapi32.dll!RegOpenKeyExW",  // CLSID查询
+    "advapi32.dll!RegQueryValueExA",
+    "advapi32.dll!RegQueryValueExW",
+    
+    // COM 激活
+    "ole32.dll!CoGetServer",
+    "ole32.dll!CoGetInterceptor",
+    "ole32.dll!CoGetCallContext",
+    
+    // COM 错误处理
+    "ole32.dll!SetErrorInfo",
+    "ole32.dll!GetErrorInfo",
+    "ole32.dll!CreateErrorInfo",
+    
+    // COM 安全
+    "ole32.dll!CoQueryAuthenticationServices",
+    "ole32.dll!CoQueryClientBlanket",
+    "ole32.dll!CoImpersonateClient",
+    "ole32.dll!CoRevertToSelf",
+    
+    // RPC 底层
+    "rpcrt4.dll!RpcBindingFromStringBindingA",
+    "rpcrt4.dll!RpcBindingFromStringBindingW",
+    "rpcrt4.dll!RpcStringBindingComposeA",
+    "rpcrt4.dll!RpcStringBindingComposeW",
+    "rpcrt4.dll!NdrClientCall2",
+    "rpcrt4.dll!NdrServerCall2",
+    
+    nullptr
+};
+const char* LateralMovementAPIs[] = {
+    // 网络共享 API
+    "netapi32.dll!NetShareAdd",
+    "netapi32.dll!NetShareDel",
+    "netapi32.dll!NetShareEnum",
+    "netapi32.dll!NetShareCheck",
+    "netapi32.dll!NetShareGetInfo",
+    "netapi32.dll!NetShareSetInfo",
+    "netapi32.dll!NetUseAdd",
+    "netapi32.dll!NetUseDel",
+    "netapi32.dll!NetUseEnum",
+    "netapi32.dll!NetUseGetInfo",
+    "netapi32.dll!NetConnectionEnum",
+    
+    // WNet API
+    "mpr.dll!WNetAddConnection2A",
+    "mpr.dll!WNetAddConnection2W",
+    "mpr.dll!WNetAddConnection3A",
+    "mpr.dll!WNetAddConnection3W",
+    "mpr.dll!WNetCancelConnection2A",
+    "mpr.dll!WNetCancelConnection2W",
+    "mpr.dll!WNetGetConnectionA",
+    "mpr.dll!WNetGetConnectionW",
+    "mpr.dll!WNetOpenEnumA",
+    "mpr.dll!WNetOpenEnumW",
+    "mpr.dll!WNetEnumResourceA",
+    "mpr.dll!WNetEnumResourceW",
+    
+    // SMB 操作
+    "kernel32.dll!CreateFileA",    // UNC路径访问
+    "kernel32.dll!CreateFileW",
+    "kernel32.dll!DeleteFileA",
+    "kernel32.dll!DeleteFileW",
+    "kernel32.dll!CopyFileA",
+    "kernel32.dll!CopyFileW",
+    "kernel32.dll!MoveFileA",
+    "kernel32.dll!MoveFileW",
+    "ntdll.dll!NtCreateFile",      // \\server\share
+    "ntdll.dll!NtOpenFile",
+    
+    // 远程服务
+    "advapi32.dll!OpenSCManagerA",
+    "advapi32.dll!OpenSCManagerW",
+    "advapi32.dll!CreateServiceA",
+    "advapi32.dll!CreateServiceW",
+    "advapi32.dll!StartServiceA",
+    "advapi32.dll!StartServiceW",
+    "advapi32.dll!OpenServiceA",
+    "advapi32.dll!OpenServiceW",
+    "advapi32.dll!ControlService",
+    "advapi32.dll!DeleteService",
+    "advapi32.dll!ChangeServiceConfigA",
+    "advapi32.dll!ChangeServiceConfigW",
+    
+    // 远程注册表
+    "advapi32.dll!RegConnectRegistryA",
+    "advapi32.dll!RegConnectRegistryW",
+    "advapi32.dll!RegOpenKeyExA",  // 远程注册表路径
+    "advapi32.dll!RegOpenKeyExW",
+    "winreg.dll!RegConnectRegistryA",
+    "winreg.dll!RegConnectRegistryW",
+    
+    // 远程计划任务
+    "taskschd.dll!ITaskScheduler",
+    "taskschd.dll!TaskScheduler",
+    "taskschd.dll!RegisterTask",
+    "taskschd.dll!CreateTask",
+    "taskschd.dll!RunTask",
+    
+    // PsExec 类工具
+    "advapi32.dll!LogonUserA",
+    "advapi32.dll!LogonUserW",
+    "advapi32.dll!ImpersonateLoggedOnUser",
+    "advapi32.dll!CreateProcessAsUserA",
+    "advapi32.dll!CreateProcessAsUserW",
+    "kernel32.dll!CreateProcessWithTokenW",
+    
+    // RDP 操作
+    "wtsapi32.dll!WTSOpenServerA",
+    "wtsapi32.dll!WTSOpenServerW",
+    "wtsapi32.dll!WTSCloseServer",
+    "wtsapi32.dll!WTSEnumerateSessionsA",
+    "wtsapi32.dll!WTSEnumerateSessionsW",
+    "wtsapi32.dll!WTSQuerySessionInformationA",
+    "wtsapi32.dll!WTSQuerySessionInformationW",
+    "wtsapi32.dll!WTSStartRemoteControlSessionA",
+    "wtsapi32.dll!WTSStartRemoteControlSessionW",
+    "wtsapi32.dll!WTSLogoffSession",
+    "wtsapi32.dll!WTSDisconnectSession",
+    
+    // WinRM
+    "wsmanhttp.dll!",
+    "wsmsvc.dll!",
+    "winrm.exe!",
+    
+    // DCOM 横向移动
+    "ole32.dll!CoCreateInstanceEx",  // 远程激活
+    "ole32.dll!CoGetClassObject",    // 远程CLSID
+    "ole32.dll!CoInitializeSecurity",  // 认证配置
+    "ole32.dll!CoSetProxyBlanket",     // 代理认证
+    
+    // 远程WMI
+    "wbemdisp.dll!",
+    "fastprox.dll!",
+    "wbemcomn.dll!",
+    
+    // 远程文件复制
+    "kernel32.dll!CopyFileExA",
+    "kernel32.dll!CopyFileExW",
+    "kernel32.dll!CopyFile2",
+    
+    // 命名管道横向移动
+    "kernel32.dll!CreateNamedPipeA",
+    "kernel32.dll!CreateNamedPipeW",
+    "kernel32.dll!ConnectNamedPipe",
+    "kernel32.dll!CallNamedPipeA",
+    "kernel32.dll!CallNamedPipeW",
+    "kernel32.dll!WaitNamedPipeA",
+    "kernel32.dll!WaitNamedPipeW",
+    
+    nullptr
+};
+// 扩展的API监控类别
+enum class ApiCategory {
+    // 原有类别
+    FILE_OPERATION,
+    REGISTRY_OPERATION,
+    MEMORY_OPERATION,
+    PROCESS_CREATION,
+    THREAD_OPERATION,
+    FIBER_OPERATION,
+    WINDOW_OPERATION,
+    KEYLOGGER,
+    REMOTE_OPERATION,
+    SCREENSHOT,
+    NETWORK_COMMUNICATION,
+    INJECTION,
+    ANTI_DEBUG,
+    ENUMERATION,
+    PRIVILEGE_SYSTEM,
+    
+    // 新增类别
+    SYNCHRONIZATION,        // 互斥体、信号量、事件、临界区、SRW锁
+    COMPLETION_PORT,        // IOCP完成端口
+    EXCEPTION_HANDLING,     // 异常处理
+    SHELL_EXECUTE,          // Shell执行
+    CRYPTOGRAPHY,           // 加密函数
+    RANDOM_NUMBER,          // 随机数函数
+    COM_INITIALIZATION,     // COM初始化
+    LATERAL_MOVEMENT        // 横向移动
+};
+
+// 完整的API注册表
+class ComprehensiveApiMonitor {
+private:
+    std::map<ApiCategory, const char**> apiRegistry;
+    
+public:
+    ComprehensiveApiMonitor() {
+        InitializeApiRegistry();
+    }
+    
+    void InitializeApiRegistry() {
+        apiRegistry[ApiCategory::SYNCHRONIZATION] = SynchronizationAPIs;
+        apiRegistry[ApiCategory::COMPLETION_PORT] = CompletionPortAPIs;
+        apiRegistry[ApiCategory::EXCEPTION_HANDLING] = ExceptionAPIs;
+        apiRegistry[ApiCategory::SHELL_EXECUTE] = ShellExecuteAPIs;
+        apiRegistry[ApiCategory::CRYPTOGRAPHY] = CryptographyAPIs;
+        apiRegistry[ApiCategory::RANDOM_NUMBER] = RandomNumberAPIs;
+        apiRegistry[ApiCategory::COM_INITIALIZATION] = COMInitializationAPIs;
+        apiRegistry[ApiCategory::LATERAL_MOVEMENT] = LateralMovementAPIs;
+    }
+    
+    // 获取所有API用于监控
+    std::vector<std::string> GetAllApisForCategory(ApiCategory category) {
+        std::vector<std::string> apis;
+        auto it = apiRegistry.find(category);
+        
+        if (it != apiRegistry.end()) {
+            const char** apiArray = it->second;
+            for (int i = 0; apiArray[i] != nullptr; i++) {
+                apis.push_back(std::string(apiArray[i]));
+            }
+        }
+        
+        return apis;
+    }
+    
+    // 获取总数统计
+    std::map<ApiCategory, size_t> GetApiCounts() {
+        std::map<ApiCategory, size_t> counts;
+        for (auto& [category, apis] : apiRegistry) {
+            size_t count = 0;
+            for (int i = 0; apis[i] != nullptr; i++) {
+                count++;
+            }
+            counts[category] = count;
+        }
+        return counts;
+    }
+};
+const char* PrivilegeAndSystemInfoAPIs[] = {
+    // 令牌操作
+    "advapi32.dll!OpenProcessToken",
+    "advapi32.dll!OpenThreadToken",
+    "advapi32.dll!AdjustTokenPrivileges",
+    "advapi32.dll!LookupPrivilegeValueA",
+    "advapi32.dll!LookupPrivilegeValueW",
+    "advapi32.dll!DuplicateToken",
+    "advapi32.dll!DuplicateTokenEx",
+    "advapi32.dll!ImpersonateLoggedOnUser",
+    "advapi32.dll!ImpersonateSelf",
+    "advapi32.dll!RevertToSelf",
+    
+    // 进程信息
+    "kernel32.dll!GetProcessId",
+    "kernel32.dll!GetCurrentProcessId",
+    "kernel32.dll!GetProcessTimes",
+    "kernel32.dll!GetProcessIoCounters",
+    "kernel32.dll!GetProcessHandleCount",
+    "kernel32.dll!GetProcessWorkingSetSize",
+    "kernel32.dll!GetProcessVersion",
+    "psapi.dll!GetProcessImageFileNameA",
+    "psapi.dll!GetProcessImageFileNameW",
+    "psapi.dll!GetModuleBaseNameA",
+    "psapi.dll!GetModuleBaseNameW",
+    "ntdll.dll!NtQueryInformationProcess",
+    
+    // 系统信息
+    "kernel32.dll!GetSystemInfo",
+    "kernel32.dll!GetNativeSystemInfo",
+    "kernel32.dll!GetSystemTime",
+    "kernel32.dll!GetLocalTime",
+    "kernel32.dll!GetVersion",
+    "kernel32.dll!GetVersionExA",
+    "kernel32.dll!GetVersionExW",
+    "kernel32.dll!GetComputerNameA",
+    "kernel32.dll!GetComputerNameW",
+    "kernel32.dll!GetUserNameA",
+    "kernel32.dll!GetUserNameW",
+    "advapi32.dll!GetUserNameA",
+    "advapi32.dll!GetUserNameW",
+    "ntdll.dll!NtQuerySystemInformation",
+    "ntdll.dll!RtlGetVersion",
+    
+    // 性能计数器
+    "advapi32.dll!RegQueryValueExA",
+    "advapi32.dll!RegQueryValueExW",
+    "pdh.dll!PdhOpenQueryA",
+    "pdh.dll!PdhOpenQueryW",
+    "pdh.dll!PdhAddCounterA",
+    "pdh.dll!PdhAddCounterW",
+    "pdh.dll!PdhCollectQueryData",
+    
+    // WMI查询
+    "wbemcomn.dll!",
+    "fastprox.dll!",
+    
+    // 服务操作
+    "advapi32.dll!OpenSCManagerA",
+    "advapi32.dll!OpenSCManagerW",
+    "advapi32.dll!CreateServiceA",
+    "advapi32.dll!CreateServiceW",
+    "advapi32.dll!StartServiceA",
+    "advapi32.dll!StartServiceW",
+    "advapi32.dll!ControlService",
+    "advapi32.dll!DeleteService",
+    "advapi32.dll!QueryServiceStatus",
+    "advapi32.dll!QueryServiceConfigA",
+    "advapi32.dll!QueryServiceConfigW",
+    
+    nullptr
+};
+const char* EnumerationAPIs[] = {
+    // 进程枚举
+    "kernel32.dll!CreateToolhelp32Snapshot",
+    "kernel32.dll!Process32FirstW",
+    "kernel32.dll!Process32NextW",
+    "psapi.dll!EnumProcesses",
+    "ntdll.dll!NtQuerySystemInformation",
+    
+    // 线程枚举
+    "kernel32.dll!Thread32First",
+    "kernel32.dll!Thread32Next",
+    
+    // 模块枚举
+    "kernel32.dll!Module32FirstW",
+    "kernel32.dll!Module32NextW",
+    "psapi.dll!EnumProcessModules",
+    "psapi.dll!EnumProcessModulesEx",
+    
+    // 文件枚举
+    "kernel32.dll!FindFirstFileA",
+    "kernel32.dll!FindFirstFileW",
+    "kernel32.dll!FindNextFileA",
+    "kernel32.dll!FindNextFileW",
+    "ntdll.dll!NtQueryDirectoryFile",
+    
+    // 窗口枚举
+    "user32.dll!EnumWindows",
+    "user32.dll!EnumChildWindows",
+    "user32.dll!EnumDesktopWindows",
+    "user32.dll!EnumThreadWindows",
+    
+    // 服务枚举
+    "advapi32.dll!EnumServicesStatusA",
+    "advapi32.dll!EnumServicesStatusW",
+    "advapi32.dll!EnumServicesStatusExA",
+    "advapi32.dll!EnumServicesStatusExW",
+    "advapi32.dll!EnumDependentServicesA",
+    "advapi32.dll!EnumDependentServicesW",
+    
+    // 驱动枚举
+    "psapi.dll!EnumDeviceDrivers",
+    "ntdll.dll!NtQuerySystemInformation",
+    
+    nullptr
+};
+const char* AntiDebugAPIs[] = {
+    // 调试器检测
+    "kernel32.dll!IsDebuggerPresent",
+    "kernel32.dll!CheckRemoteDebuggerPresent",
+    "ntdll.dll!NtQueryInformationProcess",
+    "ntdll.dll!NtSetInformationThread",
+    "ntdll.dll!NtQuerySystemInformation",
+    
+    // 调试器攻击
+    "kernel32.dll!DebugActiveProcess",
+    "kernel32.dll!DebugActiveProcessStop",
+    "kernel32.dll!DebugBreak",
+    "kernel32.dll!OutputDebugStringA",
+    "kernel32.dll!OutputDebugStringW",
+    
+    // 时间检测
+    "kernel32.dll!GetTickCount",
+    "kernel32.dll!GetTickCount64",
+    "kernel32.dll!QueryPerformanceCounter",
+    "ntdll.dll!NtQueryPerformanceCounter",
+    "winmm.dll!timeGetTime",
+    
+    // 异常处理
+    "kernel32.dll!SetUnhandledExceptionFilter",
+    "kernel32.dll!UnhandledExceptionFilter",
+    "kernel32.dll!RaiseException",
+    "ntdll.dll!RtlDispatchException",
+    "ntdll.dll!KiUserExceptionDispatcher",
+    
+    // 反反调试
+    "ntdll.dll!NtClose",              // 关闭调试句柄
+    "ntdll.dll!ZwSetInformationThread",  // 隐藏线程
+    
+    // TLS回调
+    "ntdll.dll!LdrpCallTlsInitializers",
+    "ntdll.dll!LdrpCallTlsDllInitializers",
+    
+    nullptr
+};
+const char* InjectionAPIs[] = {
+    // DLL注入
+    "kernel32.dll!LoadLibraryA",
+    "kernel32.dll!LoadLibraryW",
+    "kernel32.dll!LoadLibraryExA",
+    "kernel32.dll!LoadLibraryExW",
+    "ntdll.dll!LdrLoadDll",
+    
+    // 进程注入技术
+    "kernel32.dll!CreateRemoteThread",
+    "kernel32.dll!QueueUserAPC",
+    "ntdll.dll!NtCreateThreadEx",
+    "ntdll.dll!RtlCreateUserThread",
+    "ntdll.dll!NtMapViewOfSection",
+    
+    // 反射注入
+    "kernel32.dll!VirtualAlloc",
+    "kernel32.dll!VirtualProtect",
+    "kernel32.dll!WriteProcessMemory",
+    "ntdll.dll!NtWriteVirtualMemory",
+    
+    // Hook注入
+    "user32.dll!SetWindowsHookExA",
+    "user32.dll!SetWindowsHookExW",
+    "user32.dll!UnhookWindowsHookEx",
+    
+    // AppInit_DLLs
+    "kernel32.dll!RegQueryValueExA",
+    "kernel32.dll!RegQueryValueExW",
+    
+    // 代码洞穴
+    "kernel32.dll!ReadProcessMemory",
+    "kernel32.dll!WriteProcessMemory",
+    
+    // COM劫持
+    "ole32.dll!CoCreateInstance",
+    "ole32.dll!CoGetClassObject",
+    
+    // Shim注入
+    "kernel32.dll!GetModuleHandleA",
+    "kernel32.dll!GetModuleHandleW",
+    
+    nullptr
+};
+const char* NetworkCommunicationAPIs[] = {
+    // Socket创建
+    "ws2_32.dll!socket",
+    "ws2_32.dll!WSASocketA",
+    "ws2_32.dll!WSASocketW",
+    "ws2_32.dll!accept",
+    "ws2_32.dll!WSAAccept",
+    
+    // 连接操作
+    "ws2_32.dll!connect",
+    "ws2_32.dll!WSAConnect",
+    "ws2_32.dll!bind",
+    "ws2_32.dll!listen",
+    
+    // 数据传输
+    "ws2_32.dll!send",
+    "ws2_32.dll!sendto",
+    "ws2_32.dll!WSASend",
+    "ws2_32.dll!WSASendTo",
+    "ws2_32.dll!recv",
+    "ws2_32.dll!recvfrom",
+    "ws2_32.dll!WSARecv",
+    "ws2_32.dll!WSARecvFrom",
+    
+    // WinHTTP
+    "winhttp.dll!WinHttpOpen",
+    "winhttp.dll!WinHttpConnect",
+    "winhttp.dll!WinHttpOpenRequest",
+    "winhttp.dll!WinHttpSendRequest",
+    "winhttp.dll!WinHttpReceiveResponse",
+    "winhttp.dll!WinHttpReadData",
+    "winhttp.dll!WinHttpWriteData",
+    
+    // WinINet
+    "wininet.dll!InternetOpenA",
+    "wininet.dll!InternetOpenW",
+    "wininet.dll!InternetConnectA",
+    "wininet.dll!InternetConnectW",
+    "wininet.dll!HttpOpenRequestA",
+    "wininet.dll!HttpOpenRequestW",
+    "wininet.dll!HttpSendRequestA",
+    "wininet.dll!HttpSendRequestW",
+    "wininet.dll!InternetReadFile",
+    "wininet.dll!InternetWriteFile",
+    
+    // URL操作
+    "urlmon.dll!URLDownloadToFileA",
+    "urlmon.dll!URLDownloadToFileW",
+    "urlmon.dll!URLDownloadToCacheFileA",
+    "urlmon.dll!URLDownloadToCacheFileW",
+    
+    // DNS操作
+    "dnsapi.dll!DnsQuery_A",
+    "dnsapi.dll!DnsQuery_W",
+    "dnsapi.dll!DnsQueryEx",
+    
+    // 防火墙相关
+    "fwpuclnt.dll!FwpmEngineOpen",
+    "fwpuclnt.dll!FwpmSubLayerAdd",
+    
+    nullptr
+};
+const char* ScreenshotAPIs[] = {
+    // 设备上下文
+    "user32.dll!GetDC",
+    "user32.dll!GetDCEx",
+    "user32.dll!GetWindowDC",
+    "user32.dll!ReleaseDC",
+    "user32.dll!CreateDCW",
+    "user32.dll!CreateDCA",
+    
+    // GDI截图
+    "gdi32.dll!BitBlt",
+    "gdi32.dll!StretchBlt",
+    "gdi32.dll!CreateCompatibleDC",
+    "gdi32.dll!CreateCompatibleBitmap",
+    "gdi32.dll!SelectObject",
+    "gdi32.dll!DeleteDC",
+    "gdi32.dll!DeleteObject",
+    "gdi32.dll!GetDIBits",
+    
+    // DirectX截图
+    "d3d9.dll!CreateOffscreenPlainSurface",
+    "d3d9.dll!GetFrontBufferData",
+    "d3d9.dll!GetBackBuffer",
+    "dxgi.dll!CreateDXGIFactory",
+    "dxgi.dll!CreateDXGIFactory1",
+    
+    // 桌面壁纸
+    "user32.dll!SystemParametersInfoA",
+    "user32.dll!SystemParametersInfoW",
+    "user32.dll!GetDesktopWindow",
+    
+    // 窗口捕获
+    "user32.dll!PrintWindow",
+    "dwmapi.dll!DwmGetDxSharedSurface",
+    "dwmapi.dll!DwmRegisterThumbnail",
+    
+    nullptr
+};
+const char* RemoteOperationAPIs[] = {
+    // 远程内存操作
+    "kernel32.dll!VirtualAllocEx",
+    "kernel32.dll!VirtualFreeEx",
+    "kernel32.dll!VirtualProtectEx",
+    "kernel32.dll!ReadProcessMemory",
+    "kernel32.dll!WriteProcessMemory",
+    "ntdll.dll!NtReadVirtualMemory",
+    "ntdll.dll!NtWriteVirtualMemory",
+    "ntdll.dll!NtAllocateVirtualMemory",
+    "ntdll.dll!NtProtectVirtualMemory",
+    
+    // 远程线程
+    "kernel32.dll!CreateRemoteThread",
+    "kernel32.dll!CreateRemoteThreadEx",
+    "ntdll.dll!NtCreateThreadEx",
+    "ntdll.dll!RtlCreateUserThread",
+    
+    // 远程上下文
+    "kernel32.dll!GetThreadContext",
+    "kernel32.dll!SetThreadContext",
+    "ntdll.dll!NtGetContextThread",
+    "ntdll.dll!NtSetContextThread",
+    
+    // 远程进程
+    "kernel32.dll!OpenProcess",
+    "kernel32.dll!OpenProcessToken",
+    "advapi32.dll!OpenProcessToken",
+    "ntdll.dll!NtOpenProcess",
+    
+    // APC注入
+    "kernel32.dll!QueueUserAPC",
+    "ntdll.dll!NtQueueApcThread",
+    "ntdll.dll!NtQueueApcThreadEx",
+    
+    // 远程句柄
+    "kernel32.dll!DuplicateHandle",
+    "ntdll.dll!NtDuplicateObject",
+    
+    nullptr
+};
+const char* KeyloggerAPIs[] = {
+    // 键盘钩子
+    "user32.dll!SetWindowsHookExA",
+    "user32.dll!SetWindowsHookExW",
+    "user32.dll!UnhookWindowsHookEx",
+    "user32.dll!CallNextHookEx",
+    
+    // 键盘状态
+    "user32.dll!GetAsyncKeyState",
+    "user32.dll!GetKeyState",
+    "user32.dll!GetKeyboardState",
+    "user32.dll!SetKeyboardState",
+    "user32.dll!keybd_event",
+    "user32.dll!SendInput",
+    
+    // 窗口焦点
+    "user32.dll!GetForegroundWindow",
+    "user32.dll!GetWindowTextA",
+    "user32.dll!GetWindowTextW",
+    "user32.dll!GetWindowThreadProcessId",
+    
+    // 原始输入
+    "user32.dll!RegisterRawInputDevices",
+    "user32.dll!GetRawInputData",
+    "user32.dll!GetRawInputBuffer",
+    
+    // 消息处理
+    "user32.dll!GetMessageA",
+    "user32.dll!GetMessageW",
+    "user32.dll!PeekMessageA",
+    "user32.dll!PeekMessageW",
+    "user32.dll!TranslateMessage",
+    "user32.dll!DispatchMessageA",
+    "user32.dll!DispatchMessageW",
+    
+    nullptr
+};
+const char* WindowOperationAPIs[] = {
+    // 窗口创建
+    "user32.dll!CreateWindowExA",
+    "user32.dll!CreateWindowExW",
+    "user32.dll!CreateWindowA",
+    "user32.dll!CreateWindowW",
+    "user32.dll!DialogBoxParamA",
+    "user32.dll!DialogBoxParamW",
+    "user32.dll!CreateDialogParamA",
+    "user32.dll!CreateDialogParamW",
+    
+    // 窗口管理
+    "user32.dll!ShowWindow",
+    "user32.dll!UpdateWindow",
+    "user32.dll!DestroyWindow",
+    "user32.dll!CloseWindow",
+    "user32.dll!SetWindowPos",
+    "user32.dll!MoveWindow",
+    "user32.dll!SetWindowLongA",
+    "user32.dll!SetWindowLongW",
+    "user32.dll!GetWindowLongA",
+    "user32.dll!GetWindowLongW",
+    
+    // 窗口查找
+    "user32.dll!FindWindowA",
+    "user32.dll!FindWindowW",
+    "user32.dll!FindWindowExA",
+    "user32.dll!FindWindowExW",
+    "user32.dll!EnumWindows",
+    "user32.dll!EnumChildWindows",
+    "user32.dll!GetWindow",
+    "user32.dll!GetForegroundWindow",
+    "user32.dll!SetForegroundWindow",
+    
+    // 窗口消息
+    "user32.dll!SendMessageA",
+    "user32.dll!SendMessageW",
+    "user32.dll!PostMessageA",
+    "user32.dll!PostMessageW",
+    "user32.dll!SendNotifyMessageA",
+    "user32.dll!SendNotifyMessageW",
+    "user32.dll!PostThreadMessageA",
+    "user32.dll!PostThreadMessageW",
+    
+    // 窗口子类化
+    "user32.dll!SetWindowSubclass",
+    "comctl32.dll!SetWindowSubclass",
+    
+    // 窗口钩子
+    "user32.dll!SetWindowsHookExA",
+    "user32.dll!SetWindowsHookExW",
+    "user32.dll!UnhookWindowsHookEx",
+    "user32.dll!CallNextHookEx",
+    
+    nullptr
+};
+const char* FiberOperationAPIs[] = {
+    // 纤程创建和转换
+    "kernel32.dll!CreateFiber",
+    "kernel32.dll!CreateFiberEx",
+    "kernel32.dll!DeleteFiber",
+    "kernel32.dll!ConvertThreadToFiber",
+    "kernel32.dll!ConvertThreadToFiberEx",
+    "kernel32.dll!ConvertFiberToThread",
+    "kernel32.dll!SwitchToFiber",
+    
+    // 纤程本地存储
+    "kernel32.dll!FlsAlloc",
+    "kernel32.dll!FlsFree",
+    "kernel32.dll!FlsGetValue",
+    "kernel32.dll!FlsSetValue",
+    
+    // 纤程信息
+    "kernel32.dll!IsThreadAFiber",
+    
+    nullptr
+};
+const char* ThreadOperationAPIs[] = {
+    // 创建线程
+    "kernel32.dll!CreateThread",
+    "kernel32.dll!CreateRemoteThread",
+    "kernel32.dll!CreateRemoteThreadEx",
+    "ntdll.dll!NtCreateThreadEx",
+    "ntdll.dll!RtlCreateUserThread",
+    
+    // 线程句柄操作
+    "kernel32.dll!OpenThread",
+    "kernel32.dll!GetCurrentThread",
+    "ntdll.dll!NtOpenThread",
+    
+    // 线程控制
+    "kernel32.dll!SuspendThread",
+    "kernel32.dll!ResumeThread",
+    "kernel32.dll!TerminateThread",
+    "kernel32.dll!ExitThread",
+    "ntdll.dll!NtSuspendThread",
+    "ntdll.dll!NtResumeThread",
+    "ntdll.dll!NtTerminateThread",
+    
+    // 线程上下文
+    "kernel32.dll!GetThreadContext",
+    "kernel32.dll!SetThreadContext",
+    "ntdll.dll!NtGetContextThread",
+    "ntdll.dll!NtSetContextThread",
+    
+    // 线程信息
+    "kernel32.dll!GetThreadId",
+    "kernel32.dll!GetThreadTimes",
+    "kernel32.dll!QueryThreadCycleTime",
+    "ntdll.dll!NtQueryInformationThread",
+    
+    // 线程优先级
+    "kernel32.dll!SetThreadPriority",
+    "kernel32.dll!GetThreadPriority",
+    "kernel32.dll!SetThreadPriorityBoost",
+    
+    // TLS操作
+    "kernel32.dll!TlsAlloc",
+    "kernel32.dll!TlsFree",
+    "kernel32.dll!TlsGetValue",
+    "kernel32.dll!TlsSetValue",
+    
+    nullptr
+};
+const char* ProcessCreationAPIs[] = {
+    // 创建进程
+    "kernel32.dll!CreateProcessA",
+    "kernel32.dll!CreateProcessW",
+    "kernel32.dll!CreateProcessAsUserA",
+    "kernel32.dll!CreateProcessAsUserW",
+    "kernel32.dll!CreateProcessWithLogonW",
+    "kernel32.dll!CreateProcessWithTokenW",
+    "advapi32.dll!CreateProcessAsUserA",
+    "advapi32.dll!CreateProcessAsUserW",
+    "ntdll.dll!NtCreateProcess",
+    "ntdll.dll!NtCreateProcessEx",
+    "ntdll.dll!NtCreateUserProcess",
+    
+    // 进程句柄操作
+    "kernel32.dll!OpenProcess",
+    "kernel32.dll!GetCurrentProcess",
+    "ntdll.dll!NtOpenProcess",
+    
+    // 进程终止
+    "kernel32.dll!TerminateProcess",
+    "kernel32.dll!ExitProcess",
+    "ntdll.dll!NtTerminateProcess",
+    
+    // 进程信息
+    "kernel32.dll!GetProcessId",
+    "kernel32.dll!GetProcessTimes",
+    "kernel32.dll!GetProcessVersion",
+    "ntdll.dll!NtQueryInformationProcess",
+    
+    // 进程枚举
+    "kernel32.dll!EnumProcesses",
+    "kernel32.dll!Process32FirstW",
+    "kernel32.dll!Process32NextW",
+    "psapi.dll!EnumProcesses",
+    "ntdll.dll!NtQuerySystemInformation",
+    
+    // Shell执行
+    "shell32.dll!ShellExecuteA",
+    "shell32.dll!ShellExecuteW",
+    "shell32.dll!ShellExecuteExA",
+    "shell32.dll!ShellExecuteExW",
+    
+    nullptr
+};
+const char* MemoryOperationAPIs[] = {
+    // 内存分配
+    "kernel32.dll!VirtualAlloc",
+    "kernel32.dll!VirtualAllocEx",
+    "kernel32.dll!HeapAlloc",
+    "kernel32.dll!LocalAlloc",
+    "kernel32.dll!GlobalAlloc",
+    "ntdll.dll!NtAllocateVirtualMemory",
+    "ntdll.dll!RtlAllocateHeap",
+    
+    // 内存释放
+    "kernel32.dll!VirtualFree",
+    "kernel32.dll!VirtualFreeEx",
+    "kernel32.dll!HeapFree",
+    "ntdll.dll!NtFreeVirtualMemory",
+    "ntdll.dll!RtlFreeHeap",
+    
+    // 内存保护
+    "kernel32.dll!VirtualProtect",
+    "kernel32.dll!VirtualProtectEx",
+    "ntdll.dll!NtProtectVirtualMemory",
+    
+    // 内存操作
+    "kernel32.dll!RtlMoveMemory",
+    "kernel32.dll!RtlCopyMemory",
+    "kernel32.dll!RtlFillMemory",
+    "kernel32.dll!RtlZeroMemory",
+    "ntdll.dll!memcpy",
+    "ntdll.dll!memset",
+    
+    // 内存映射
+    "kernel32.dll!CreateFileMappingA",
+    "kernel32.dll!CreateFileMappingW",
+    "kernel32.dll!MapViewOfFile",
+    "kernel32.dll!MapViewOfFileEx",
+    "kernel32.dll!UnmapViewOfFile",
+    "ntdll.dll!NtCreateSection",
+    "ntdll.dll!NtMapViewOfSection",
+    
+    // 内存查询
+    "kernel32.dll!VirtualQuery",
+    "kernel32.dll!VirtualQueryEx",
+    "ntdll.dll!NtQueryVirtualMemory",
+    
+    // 大型页面
+    "ntdll.dll!NtAllocateUserPhysicalPages",
+    "ntdll.dll!NtMapUserPhysicalPages",
+    
+    nullptr
+};
+const char* RegistryOperationAPIs[] = {
+    // 注册表键操作
+    "advapi32.dll!RegOpenKeyExA",
+    "advapi32.dll!RegOpenKeyExW",
+    "advapi32.dll!RegCreateKeyExA",
+    "advapi32.dll!RegCreateKeyExW",
+    "advapi32.dll!RegDeleteKeyA",
+    "advapi32.dll!RegDeleteKeyW",
+    "advapi32.dll!RegDeleteKeyExA",
+    "advapi32.dll!RegDeleteKeyExW",
+    "advapi32.dll!RegCloseKey",
+    "ntdll.dll!NtOpenKey",
+    "ntdll.dll!NtCreateKey",
+    "ntdll.dll!NtDeleteKey",
+    
+    // 注册表值操作
+    "advapi32.dll!RegSetValueExA",
+    "advapi32.dll!RegSetValueExW",
+    "advapi32.dll!RegQueryValueExA",
+    "advapi32.dll!RegQueryValueExW",
+    "advapi32.dll!RegDeleteValueA",
+    "advapi32.dll!RegDeleteValueW",
+    "ntdll.dll!NtSetValueKey",
+    "ntdll.dll!NtQueryValueKey",
+    
+    // 注册表枚举
+    "advapi32.dll!RegEnumKeyExA",
+    "advapi32.dll!RegEnumKeyExW",
+    "advapi32.dll!RegEnumValueA",
+    "advapi32.dll!RegEnumValueW",
+    "ntdll.dll!NtEnumerateKey",
+    "ntdll.dll!NtEnumerateValueKey",
+    
+    // 注册表信息查询
+    "advapi32.dll!RegQueryInfoKeyA",
+    "advapi32.dll!RegQueryInfoKeyW",
+    "ntdll.dll!NtQueryKey",
+    
+    // 注册表安全
+    "advapi32.dll!RegGetKeySecurity",
+    "advapi32.dll!RegSetKeySecurity",
+    
+    nullptr
+};
+// 文件操作监控列表
+const char* FileOperationAPIs[] = {
+    // 创建/打开文件
+    "kernel32.dll!CreateFileA",
+    "kernel32.dll!CreateFileW",
+    "kernel32.dll!CreateFile2",
+    "kernel32.dll!OpenFile",
+    "kernel32.dll!OpenFileById",
+    "ntdll.dll!NtCreateFile",
+    "ntdll.dll!NtOpenFile",
+    
+    // 读写文件
+    "kernel32.dll!ReadFile",
+    "kernel32.dll!ReadFileEx",
+    "kernel32.dll!WriteFile",
+    "kernel32.dll!WriteFileEx",
+    "kernel32.dll!SetFilePointer",
+    "kernel32.dll!SetFilePointerEx",
+    "ntdll.dll!NtReadFile",
+    "ntdll.dll!NtWriteFile",
+    
+    // 删除文件
+    "kernel32.dll!DeleteFileA",
+    "kernel32.dll!DeleteFileW",
+    "ntdll.dll!NtDeleteFile",
+    
+    // 移动/重命名
+    "kernel32.dll!MoveFileA",
+    "kernel32.dll!MoveFileW",
+    "kernel32.dll!MoveFileExA",
+    "kernel32.dll!MoveFileExW",
+    "kernel32.dll!CopyFileA",
+    "kernel32.dll!CopyFileW",
+    "kernel32.dll!CopyFileExA",
+    "kernel32.dll!CopyFileExW",
+    
+    // 文件属性
+    "kernel32.dll!GetFileAttributesA",
+    "kernel32.dll!GetFileAttributesW",
+    "kernel32.dll!SetFileAttributesA",
+    "kernel32.dll!SetFileAttributesW",
+    "kernel32.dll!GetFileSize",
+    "kernel32.dll!GetFileSizeEx",
+    "ntdll.dll!NtQueryInformationFile",
+    "ntdll.dll!NtSetInformationFile",
+    
+    // 目录操作
+    "kernel32.dll!CreateDirectoryA",
+    "kernel32.dll!CreateDirectoryW",
+    "kernel32.dll!RemoveDirectoryA",
+    "kernel32.dll!RemoveDirectoryW",
+    "kernel32.dll!FindFirstFileA",
+    "kernel32.dll!FindFirstFileW",
+    "kernel32.dll!FindNextFileA",
+    "kernel32.dll!FindNextFileW",
+    "ntdll.dll!NtQueryDirectoryFile",
+    
+    nullptr
+};
+const char* ThreadPoolAPIs[] = {
+    // ========================================
+    // 一、线程池基础管理
+    // ========================================
+    
+    // 创建和关闭线程池
+    "kernel32.dll!CreateThreadpool",
+    "kernel32.dll!CloseThreadpool",
+    "kernel32.dll!SetThreadpoolThreadMaximum",
+    "kernel32.dll!SetThreadpoolThreadMinimum",
+    "kernel32.dll!QueryThreadpoolStackInformation",
+    "kernel32.dll!SetThreadpoolStackInformation",
+    "ntdll.dll!TpAllocPool",
+    "ntdll.dll!TpReleasePool",
+    "ntdll.dll!TpSetPoolMaxThreads",
+    "ntdll.dll!TpSetPoolMinThreads",
+    "ntdll.dll!TpSetPoolStackInformation",
+    "ntdll.dll!TpQueryPoolStackInformation",
+    
+    // 清理组 (Cleanup Group)
+    "kernel32.dll!CreateThreadpoolCleanupGroup",
+    "kernel32.dll!CloseThreadpoolCleanupGroup",
+    "kernel32.dll!CloseThreadpoolCleanupGroupMembers",
+    "ntdll.dll!TpAllocCleanupGroup",
+    "ntdll.dll!TpReleaseCleanupGroup",
+    "ntdll.dll!TpReleaseCleanupGroupMembers",
+    
+    // 线程池回调环境
+    "kernel32.dll!InitializeThreadpoolEnvironment",
+    "kernel32.dll!DestroyThreadpoolEnvironment",
+    "kernel32.dll!SetThreadpoolCallbackPool",
+    "kernel32.dll!SetThreadpoolCallbackCleanupGroup",
+    "kernel32.dll!SetThreadpoolCallbackRunsLong",
+    "kernel32.dll!SetThreadpoolCallbackLibrary",
+    "kernel32.dll!SetThreadpoolCallbackPriority",
+    "kernel32.dll!SetThreadpoolCallbackPersistent",
+    "ntdll.dll!TpInitializeCallbackEnviron",
+    "ntdll.dll!TpDestroyCallbackEnviron",
+    "ntdll.dll!TpSetCallbackThreadpool",
+    "ntdll.dll!TpSetCallbackCleanupGroup",
+    "ntdll.dll!TpSetCallbackActivationContext",
+    "ntdll.dll!TpSetCallbackFinalizationCallback",
+    "ntdll.dll!TpSetCallbackLongFunction",
+    "ntdll.dll!TpSetCallbackPriority",
+    "ntdll.dll!TpSetCallbackPersistent",
+    "ntdll.dll!TpSetCallbackNoActivationContext",
+    "ntdll.dll!TpSetCallbackRaceDll",
+    
+    // ========================================
+    // 二、工作项 (Work Items)
+    // ========================================
+    
+    // 简单工作项
+    "kernel32.dll!TrySubmitThreadpoolCallback",
+    "kernel32.dll!SubmitThreadpoolWork",
+    "kernel32.dll!CreateThreadpoolWork",
+    "kernel32.dll!CloseThreadpoolWork",
+    "kernel32.dll!WaitForThreadpoolWorkCallbacks",
+    "ntdll.dll!TpAllocWork",
+    "ntdll.dll!TpPostWork",
+    "ntdll.dll!TpReleaseWork",
+    "ntdll.dll!TpWaitForWork",
+    "ntdll.dll!TpSimpleTryPost",
+    
+    // ========================================
+    // 三、定时器 (Timer)
+    // ========================================
+    
+    // 线程池定时器
+    "kernel32.dll!CreateThreadpoolTimer",
+    "kernel32.dll!CloseThreadpoolTimer",
+    "kernel32.dll!SetThreadpoolTimer",
+    "kernel32.dll!SetThreadpoolTimerEx",
+    "kernel32.dll!IsThreadpoolTimerSet",
+    "kernel32.dll!WaitForThreadpoolTimerCallbacks",
+    "ntdll.dll!TpAllocTimer",
+    "ntdll.dll!TpReleaseTimer",
+    "ntdll.dll!TpSetTimer",
+    "ntdll.dll!TpSetTimerEx",
+    "ntdll.dll!TpIsTimerSet",
+    "ntdll.dll!TpWaitForTimer",
+    "ntdll.dll!TpSetWait",
+    "ntdll.dll!TpSetWaitEx",
+    
+    // ========================================
+    // 四、等待对象 (Wait Objects)
+    // ========================================
+    
+    // 线程池等待
+    "kernel32.dll!CreateThreadpoolWait",
+    "kernel32.dll!CloseThreadpoolWait",
+    "kernel32.dll!SetThreadpoolWait",
+    "kernel32.dll!SetThreadpoolWaitEx",
+    "kernel32.dll!WaitForThreadpoolWaitCallbacks",
+    "ntdll.dll!TpAllocWait",
+    "ntdll.dll!TpReleaseWait",
+    "ntdll.dll!TpWaitForWait",
+    
+    // ========================================
+    // 五、I/O 完成 (I/O Completion)
+    // ========================================
+    
+    // 线程池 I/O
+    "kernel32.dll!CreateThreadpoolIo",
+    "kernel32.dll!CloseThreadpoolIo",
+    "kernel32.dll!StartThreadpoolIo",
+    "kernel32.dll!CancelThreadpoolIo",
+    "kernel32.dll!WaitForThreadpoolIoCallbacks",
+    "ntdll.dll!TpAllocIoCompletion",
+    "ntdll.dll!TpReleaseIoCompletion",
+    "ntdll.dll!TpStartThreadpoolIo",
+    "ntdll.dll!TpCancelThreadpoolIo",
+    "ntdll.dll!TpWaitForIoCompletion",
+    "ntdll.dll!TpWaitForAlpcCompletion",
+    
+    // 与IOCP集成
+    "kernel32.dll!CreateIoCompletionPort",
+    "kernel32.dll!GetQueuedCompletionStatus",
+    "kernel32.dll!GetQueuedCompletionStatusEx",
+    "kernel32.dll!PostQueuedCompletionStatus",
+    "kernel32.dll!SetFileCompletionNotificationModes",
+    "ntdll.dll!NtCreateIoCompletion",
+    "ntdll.dll!NtSetIoCompletion",
+    "ntdll.dll!NtRemoveIoCompletion",
+    "ntdll.dll!NtRemoveIoCompletionEx",
+    "ntdll.dll!NtSetIoCompletionEx",
+    
+    // ========================================
+    // 六、异步过程调用 (APC)
+    // ========================================
+    
+    // 线程池 APC
+    "kernel32.dll!QueueUserAPC",
+    "ntdll.dll!NtQueueApcThread",
+    "ntdll.dll!NtQueueApcThreadEx",
+    "ntdll.dll!TpAllocAlpcCompletion",
+    "ntdll.dll!TpAllocAlpcCompletionEx",
+    "ntdll.dll!TpReleaseAlpcCompletion",
+    
+    // ========================================
+    // 七、作业对象 (Job Objects)
+    // ========================================
+    
+    // 线程池与作业对象
+    "kernel32.dll!CreateJobObjectA",
+    "kernel32.dll!CreateJobObjectW",
+    "kernel32.dll!AssignProcessToJobObject",
+    "kernel32.dll!SetInformationJobObject",
+    "kernel32.dll!QueryInformationJobObject",
+    "kernel32.dll!TerminateJobObject",
+    "ntdll.dll!NtCreateJobObject",
+    "ntdll.dll!NtAssignProcessToJobObject",
+    "ntdll.dll!NtSetInformationJobObject",
+    "ntdll.dll!NtQueryInformationJobObject",
+    "ntdll.dll!NtTerminateJobObject",
+    
+    // ========================================
+    // 八、高级线程池特性
+    // ========================================
+    
+    // 私有线程池
+    "kernel32.dll!CreateThreadpool",
+    "kernel32.dll!SetThreadpoolThreadMaximum",
+    "kernel32.dll!SetThreadpoolThreadMinimum",
+    "ntdll.dll!TpAllocPool",
+    "ntdll.dll!TpSetPoolMaxThreads",
+    "ntdll.dll!TpSetPoolMinThreads",
+    
+    // 线程池统计
+    "kernel32.dll!QueryThreadpoolStackInformation",
+    "ntdll.dll!TpQueryPoolStackInformation",
+    "ntdll.dll!TpDbgDumpObjects",
+    "ntdll.dll!TpDbgSetLogRoutine",
+    
+    // 线程池调试
+    "ntdll.dll!TpCaptureCaller",
+    "ntdll.dll!TpCheckTerminateWorker",
+    
+    // 线程池工作线程管理
+    "ntdll.dll!TpAdjustPendingIrpCount",
+    "ntdll.dll!TpDisassociateCallback",
+    "ntdll.dll!TpIsTimerSet",
+    "ntdll.dll!TpPostTask",
+    
+    nullptr
+};
+
+
+// ============================================
+// 回调执行 Shellcode 的 Windows API 完整清单
+// ============================================
+
+const char* CallbackExecutionAPIs[] = {
+    // ========================================
+    // 一、线程创建相关回调
+    // ========================================
+    
+    // CreateThread - 最直接的线程创建
+    "kernel32.dll!CreateThread",
+    
+    // 线程池工作项回调
+    "kernel32.dll!CreateThreadpoolWork",
+    "kernel32.dll!SubmitThreadpoolWork",
+    "kernel32.dll!TrySubmitThreadpoolCallback",
+    "ntdll.dll!TpAllocWork",
+    "ntdll.dll!TpPostWork",
+    "ntdll.dll!TpSimpleTryPost",
+    
+    // 线程池定时器回调
+    "kernel32.dll!CreateThreadpoolTimer",
+    "kernel32.dll!SetThreadpoolTimer",
+    "ntdll.dll!TpAllocTimer",
+    "ntdll.dll!TpSetTimer",
+    
+    // 线程池等待回调
+    "kernel32.dll!CreateThreadpoolWait",
+    "kernel32.dll!SetThreadpoolWait",
+    "ntdll.dll!TpAllocWait",
+    "ntdll.dll!TpSetWait",
+    
+    // 线程池 I/O 回调
+    "kernel32.dll!CreateThreadpoolIo",
+    "kernel32.dll!StartThreadpoolIo",
+    "ntdll.dll!TpAllocIoCompletion",
+    "ntdll.dll!TpStartThreadpoolIo",
+    
+    // QueueUserAPC - APC注入
+    "kernel32.dll!QueueUserAPC",
+    "ntdll.dll!NtQueueApcThread",
+    "ntdll.dll!NtQueueApcThreadEx",
+    
+    // ========================================
+    // 二、窗口和消息相关回调
+    // ========================================
+    
+    // 窗口过程回调
+    "user32.dll!CreateWindowExA",
+    "user32.dll!CreateWindowExW",
+    "user32.dll!SetWindowLongA",        // GWL_WNDPROC
+    "user32.dll!SetWindowLongW",
+    "user32.dll!SetWindowLongPtrA",
+    "user32.dll!SetWindowLongPtrW",
+    "user32.dll!CallWindowProcA",
+    "user32.dll!CallWindowProcW",
+    
+    // 窗口消息回调
+    "user32.dll!SendMessageA",
+    "user32.dll!SendMessageW",
+    "user32.dll!SendMessageCallbackA",
+    "user32.dll!SendMessageCallbackW",
+    "user32.dll!SendNotifyMessageA",
+    "user32.dll!SendNotifyMessageW",
+    "user32.dll!PostMessageA",
+    "user32.dll!PostMessageW",
+    "user32.dll!DispatchMessageA",
+    "user32.dll!DispatchMessageW",
+    
+    // 定时器回调
+    "user32.dll!SetTimer",
+    "user32.dll!SetSystemTimer",
+    "user32.dll!KillTimer",
+    
+    // 钩子回调
+    "user32.dll!SetWindowsHookExA",
+    "user32.dll!SetWindowsHookExW",
+    "user32.dll!SetWinEventHook",
+    "user32.dll!UnhookWindowsHookEx",
+    "user32.dll!CallNextHookEx",
+    
+    // 桌面/窗口站回调
+    "user32.dll!EnumWindows",
+    "user32.dll!EnumChildWindows",
+    "user32.dll!EnumDesktopWindows",
+    "user32.dll!EnumThreadWindows",
+    "user32.dll!EnumPropsA",
+    "user32.dll!EnumPropsW",
+    "user32.dll!EnumPropsExA",
+    "user32.dll!EnumPropsExW",
+    
+    // 对话框回调
+    "user32.dll!DialogBoxParamA",
+    "user32.dll!DialogBoxParamW",
+    "user32.dll!DialogBoxIndirectParamA",
+    "user32.dll!DialogBoxIndirectParamW",
+    "user32.dll!CreateDialogParamA",
+    "user32.dll!CreateDialogParamW",
+    "user32.dll!CreateDialogIndirectParamA",
+    "user32.dll!CreateDialogIndirectParamW",
+    
+    // ========================================
+    // 三、枚举和遍历回调
+    // ========================================
+    
+    // 进程枚举回调
+    "kernel32.dll!EnumProcesses",
+    "psapi.dll!EnumProcesses",
+    "ntdll.dll!NtQuerySystemInformation",
+    
+    // 模块枚举回调
+    "psapi.dll!EnumProcessModules",
+    "psapi.dll!EnumProcessModulesEx",
+    
+    // 线程枚举回调
+    "kernel32.dll!Thread32First",
+    "kernel32.dll!Thread32Next",
+    "ntdll.dll!NtGetNextThread",
+    
+    // 文件查找回调
+    "kernel32.dll!FindFirstFileA",
+    "kernel32.dll!FindFirstFileW",
+    "kernel32.dll!FindNextFileA",
+    "kernel32.dll!FindNextFileW",
+    "ntdll.dll!NtQueryDirectoryFile",
+    "ntdll.dll!NtQueryDirectoryFileEx",
+    
+    // 注册表枚举回调
+    "advapi32.dll!RegEnumKeyA",
+    "advapi32.dll!RegEnumKeyW",
+    "advapi32.dll!RegEnumKeyExA",
+    "advapi32.dll!RegEnumKeyExW",
+    "advapi32.dll!RegEnumValueA",
+    "advapi32.dll!RegEnumValueW",
+    "ntdll.dll!NtEnumerateKey",
+    "ntdll.dll!NtEnumerateValueKey",
+    
+    // 服务枚举回调
+    "advapi32.dll!EnumServicesStatusA",
+    "advapi32.dll!EnumServicesStatusW",
+    "advapi32.dll!EnumServicesStatusExA",
+    "advapi32.dll!EnumServicesStatusExW",
+    "advapi32.dll!EnumDependentServicesA",
+    "advapi32.dll!EnumDependentServicesW",
+    
+    // ========================================
+    // 四、资源相关回调
+    // ========================================
+    
+    // 资源枚举回调
+    "kernel32.dll!EnumResourceTypesA",
+    "kernel32.dll!EnumResourceTypesW",
+    "kernel32.dll!EnumResourceTypesExA",
+    "kernel32.dll!EnumResourceTypesExW",
+    "kernel32.dll!EnumResourceNamesA",
+    "kernel32.dll!EnumResourceNamesW",
+    "kernel32.dll!EnumResourceLanguagesA",
+    "kernel32.dll!EnumResourceLanguagesW",
+    "kernel32.dll!EnumResourceTypesExA",
+    "kernel32.dll!EnumResourceTypesExW",
+    "kernel32.dll!EnumResourceNamesExA",
+    "kernel32.dll!EnumResourceNamesExW",
+    "kernel32.dll!EnumResourceLanguagesExA",
+    "kernel32.dll!EnumResourceLanguagesExW",
+    
+    // ========================================
+    // 五、异常处理回调
+    // ========================================
+    
+    // 向量化异常处理
+    "kernel32.dll!AddVectoredExceptionHandler",
+    "kernel32.dll!AddVectoredContinueHandler",
+    "ntdll.dll!RtlAddVectoredExceptionHandler",
+    "ntdll.dll!RtlRemoveVectoredExceptionHandler",
+    
+    // 未处理异常过滤器
+    "kernel32.dll!SetUnhandledExceptionFilter",
+    "kernel32.dll!UnhandledExceptionFilter",
+    
+    // 结构化异常处理
+    "ntdll.dll!RtlDispatchException",
+    "ntdll.dll!KiUserExceptionDispatcher",
+    
+    // ========================================
+    // 六、内存管理回调
+    // ========================================
+    
+    // 堆枚举回调
+    "kernel32.dll!HeapWalk",
+    "ntdll.dll!RtlWalkHeap",
+    
+    // ========================================
+    // 七、进程和线程通知回调
+    // ========================================
+    
+    // 进程创建通知
+    "kernel32.dll!CreateProcessA",
+    "kernel32.dll!CreateProcessW",
+    "kernel32.dll!CreateProcessAsUserA",
+    "kernel32.dll!CreateProcessAsUserW",
+    "advapi32.dll!CreateProcessAsUserA",
+    "advapi32.dll!CreateProcessAsUserW",
+    "advapi32.dll!CreateProcessWithLogonW",
+    "advapi32.dll!CreateProcessWithTokenW",
+    "ntdll.dll!NtCreateProcess",
+    "ntdll.dll!NtCreateProcessEx",
+    "ntdll.dll!NtCreateUserProcess",
+    
+    // 线程创建通知
+    "kernel32.dll!CreateRemoteThread",
+    "kernel32.dll!CreateRemoteThreadEx",
+    "ntdll.dll!NtCreateThread",
+    "ntdll.dll!NtCreateThreadEx",
+    "ntdll.dll!RtlCreateUserThread",
+    
+    // DLL加载通知回调
+    "ntdll.dll!LdrRegisterDllNotification",
+    "ntdll.dll!LdrUnregisterDllNotification",
+    
+    // ========================================
+    // 八、文件系统回调
+    // ========================================
+    
+    // 目录变化通知
+    "kernel32.dll!ReadDirectoryChangesW",
+    "ntdll.dll!NtNotifyChangeDirectoryFile",
+    "kernel32.dll!FindFirstChangeNotificationA",
+    "kernel32.dll!FindFirstChangeNotificationW",
+    "kernel32.dll!FindNextChangeNotification",
+    "kernel32.dll!FindCloseChangeNotification",
+    
+    // 文件IO完成回调
+    "kernel32.dll!ReadFileEx",
+    "kernel32.dll!WriteFileEx",
+    "kernel32.dll!SetFileCompletionNotificationModes",
+    "ntdll.dll!NtReadFile",    // APC完成例程
+    "ntdll.dll!NtWriteFile",   // APC完成例程
+    
+    // ========================================
+    // 九、网络相关回调
+    // ========================================
+    
+    // 异步Socket回调
+    "ws2_32.dll!WSAAsyncSelect",
+    "ws2_32.dll!WSASend",
+    "ws2_32.dll!WSARecv",
+    "ws2_32.dll!WSASendTo",
+    "ws2_32.dll!WSARecvFrom",
+    "ws2_32.dll!WSAAccept",
+    "ws2_32.dll!WSAEventSelect",
+    "ws2_32.dll!WSASetEvent",
+    "ws2_32.dll!WSAResetEvent",
+    
+    // WinHTTP 异步回调
+    "winhttp.dll!WinHttpSetStatusCallback",
+    "winhttp.dll!WinHttpSendRequest",
+    "winhttp.dll!WinHttpReceiveResponse",
+    "winhttp.dll!WinHttpReadData",
+    "winhttp.dll!WinHttpWriteData",
+    "winhttp.dll!WinHttpQueryDataAvailable",
+    "winhttp.dll!WinHttpQueryHeaders",
+    
+    // WinINet 回调
+    "wininet.dll!InternetSetStatusCallbackA",
+    "wininet.dll!InternetSetStatusCallbackW",
+    
+    // ========================================
+    // 十、系统服务回调
+    // ========================================
+    
+    // 服务控制回调
+    "advapi32.dll!StartServiceCtrlDispatcherA",
+    "advapi32.dll!StartServiceCtrlDispatcherW",
+    "advapi32.dll!RegisterServiceCtrlHandlerA",
+    "advapi32.dll!RegisterServiceCtrlHandlerW",
+    "advapi32.dll!RegisterServiceCtrlHandlerExA",
+    "advapi32.dll!RegisterServiceCtrlHandlerExW",
+    
+    // 设备IO控制
+    "kernel32.dll!DeviceIoControl",
+    "ntdll.dll!NtDeviceIoControlFile",
+    "advapi32.dll!DeviceIoControl",
+    
+    // 电源通知回调
+    "kernel32.dll!SetThreadExecutionState",
+    "kernel32.dll!RegisterPowerSettingNotification",
+    "kernel32.dll!UnregisterPowerSettingNotification",
+    
+    // ========================================
+    // 十一、COM 相关回调
+    // ========================================
+    
+    // COM 对象创建
+    "ole32.dll!CoCreateInstance",
+    "ole32.dll!CoCreateInstanceEx",
+    "ole32.dll!CoGetClassObject",
+    "ole32.dll!CoGetObject",
+    
+    // COM 异步调用
+    "ole32.dll!CoWaitForMultipleHandles",
+    "ole32.dll!CoGetCallContext",
+    "ole32.dll!CoGetInterceptor",
+    
+    // COM 事件
+    "oleaut32.dll!DispCallFunc",
+    "oleaut32.dll!DispInvoke",
+    
+    // ========================================
+    // 十二、.NET CLR 相关回调
+    // ========================================
+    
+    // CLR 宿主回调
+    "mscoree.dll!CLRCreateInstance",
+    "mscoree.dll!CorBindToRuntime",
+    "mscoree.dll!CorBindToRuntimeEx",
+    "mscoree.dll!CorBindToCurrentRuntime",
+    
+    // ========================================
+    // 十三、TLS 回调
+    // ========================================
+    
+    // TLS 回调函数
+    "ntdll.dll!LdrpCallTlsInitializers",
+    "ntdll.dll!LdrpCallTlsDllInitializers",
+    "ntdll.dll!LdrpInitializeTls",
+    
+    // ========================================
+    // 十四、纤程回调
+    // ========================================
+    
+    "kernel32.dll!CreateFiber",
+    "kernel32.dll!CreateFiberEx",
+    "kernel32.dll!ConvertThreadToFiber",
+    "kernel32.dll!ConvertThreadToFiberEx",
+    "kernel32.dll!SwitchToFiber",
+    
+    // ========================================
+    // 十五、其他执行回调
+    // ========================================
+    
+    // 图像解码回调
+    "windowscodecs.dll!IWICBitmapDecoder",
+    "windowscodecs.dll!IWICBitmapSource",
+    
+    // 证书验证回调
+    "crypt32.dll!CertVerifyCertificateChainPolicy",
+    "crypt32.dll!CertGetCertificateChain",
+    
+    // 加密回调
+    "advapi32.dll!CryptEnumOIDInfo",
+    "crypt32.dll!CertEnumSystemStore",
+    "crypt32.dll!CertEnumSystemStoreLocation",
+    
+    nullptr
+};
